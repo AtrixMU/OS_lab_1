@@ -1,1 +1,1 @@
-pub mod vm_processor;
+pub mod processor;
