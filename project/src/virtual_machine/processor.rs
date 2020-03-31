@@ -27,7 +27,7 @@ impl VMProcessor {
 }
 
 
-impl Processor for Virtual_Processor{
+impl Processor for VMProcessor{
     fn get_carry_flag(self) -> bool {
         self.sr & 0b0000_0000_0000_0001 > 0
     }
