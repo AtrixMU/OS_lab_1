@@ -9,5 +9,5 @@ fn main() {
     let test = RMProcessor::new();
     println!("{:?}", test);
     println!("{:?}", test.get_zero_flag());
-    println!("{:?}",test_vm.get_supervisor_flag());
+    println!("{:?}", test_vm.get_supervisor_flag());
 }
