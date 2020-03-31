@@ -1,8 +1,8 @@
-
+use crate::traits::Processor;
 // The processor struct for our real machine.
 // Debug allows us to print the struct using println!("{:?}", struct_name)
 #[derive(Debug)]
-pub struct Processor {
+pub struct RMProcessor {
     ax: u32,
     bx: u32,
     cx: u32,
@@ -16,10 +16,10 @@ pub struct Processor {
 }
 
 // Methods implemented for the real machine Processor struct
-impl Processor {
+impl RMProcessor {
     // Create new instance with default values
-    pub fn new() -> Processor {
-        Processor {
+    pub fn new() -> RMProcessor {
+        RMProcessor {
             ax: 0,
             bx: 0,
             cx: 0,
@@ -31,5 +31,38 @@ impl Processor {
             ip: 0,
             ptr: 0,
         }
+    }
+}
+
+impl Processor for RMProcessor {
+    fn get_carry_flag(self) -> bool {
+        self.sr & 0b0000_0000_0000_0001 > 0
+    }
+    fn get_parity_flag(self) -> bool {
+        self.sr & 0b0000_0000_0000_0100 > 0
+    }
+    fn get_auxiliary_carry_flag(self) -> bool {
+        self.sr & 0b0000_0000_0001_0000 > 0
+    }
+    fn get_zero_flag(self) -> bool {
+        self.sr & 0b0000_0000_0100_0000 > 0
+    }
+    fn get_sign_flag(self) -> bool {
+        self.sr & 0b0000_0000_1000_0000 > 0
+    }
+    fn get_trap_flag(self) -> bool {
+        self.sr & 0b0000_0001_0000_0000 > 0
+    }
+    fn get_interrupt_flag(self) -> bool {
+        self.sr & 0b0000_0010_0000_0000 > 0
+    }
+    fn get_directional_flag(self) -> bool {
+        self.sr & 0b0000_0100_0000_0000 > 0
+    }
+    fn get_overflow_flag(self) -> bool {
+        self.sr & 0b0000_1000_0000_0000 > 0
+    }
+    fn get_supervisor_flag(&self) -> bool {
+        self.sr & 0b1000_0000_0000_0000 > 0
     }
 }
