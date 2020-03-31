@@ -1,7 +1,7 @@
 use crate::traits::Processor;
 
 #[derive(Debug)]
-pub struct Virtual_Processor {
+pub struct VMProcessor {
     r1: u32,
     r2: u32,
     r3: u32,
@@ -11,10 +11,10 @@ pub struct Virtual_Processor {
     ptr: u32,
 }
 
-impl Virtual_Processor {
+impl VMProcessor {
     // Create new instance with default values
-    pub fn new() -> Virtual_Processor {
-        Virtual_Processor {
+    pub fn new() -> VMProcessor {
+        VMProcessor {
             r1: 0,
             r2: 0,
             r3: 0,
@@ -27,7 +27,7 @@ impl Virtual_Processor {
 }
 
 
-impl Processor for Virtual_Processor{
+impl Processor for VMProcessor{
     fn get_carry_flag(self) -> bool {
         self.sr & 0b0000_0000_0000_0001 > 0
     }
