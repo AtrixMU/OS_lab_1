@@ -27,7 +27,6 @@ impl VMProcessor {
     }
 }
 
-
 impl Processor for VMProcessor{
     fn get_carry_flag(self) -> bool {
         self.sr & CARRY_FLAG > 0
@@ -131,9 +130,7 @@ impl Processor for VMProcessor{
             self.sr &= !OVERFLOW_FLAG;
         }
     }
-    fn set_supervisor_flag(&mut self, _value: bool) {
-        
-    }
+    fn set_supervisor_flag(&mut self, _value: bool) {}
 }
 
 #[cfg(test)]

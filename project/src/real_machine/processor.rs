@@ -1,3 +1,5 @@
+use crate::virtual_machine::processor::VMProcessor;
+use super::memory_management_unit::MemoryManagementUnit;
 use crate::traits::Processor;
 use crate::consts::*;
 // The processor struct for our real machine.
@@ -14,6 +16,8 @@ pub struct RMProcessor {
     sr: u16,
     ip: u32,
     ptr: u32,
+    vm_list: Vec<VMProcessor>,
+    mmu: MemoryManagementUnit,
 }
 
 // Methods implemented for the real machine Processor struct
@@ -31,6 +35,14 @@ impl RMProcessor {
             sr: 0,
             ip: 0,
             ptr: 0,
+            vm_list: Vec::new(),
+            mmu: MemoryManagementUnit::new(),
+        }
+    }
+    pub fn process_interrupt(self, process_id: u32) {
+        match self.pi {
+            0 => println!("oopsie"),
+            _ => println!("all good"),
         }
     }
 }
