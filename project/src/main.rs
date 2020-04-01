@@ -10,4 +10,5 @@ fn main() {
     println!("{:?}", test);
     println!("{:?}", test.get_zero_flag());
     println!("{:?}", test_vm.get_supervisor_flag());
+    println!("{:?}", 0 as char);
 }
