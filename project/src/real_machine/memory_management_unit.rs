@@ -1,3 +1,4 @@
+//Matas Udris, Robertas Povedionok 4 grupe, informatika
 use crate::types::Word;
 use crate::consts::*;
 use std::fs::File;
