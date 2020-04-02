@@ -55,7 +55,7 @@ impl RMProcessor {
         }
     }
 
-    pub fn get_command() -> Word {
+    pub fn get_command(&self) -> Word {
         self.mmu.get_word(self.ptr, self.ip)
       }
 }
@@ -174,18 +174,18 @@ impl Processor for RMProcessor {
 }
 
 impl RMProcessor{
-    pub fn instruction_loop(&mut self) {
+    pub fn instruction_loop(mut self) {
         while true {
           for vm in self.vm_list.iter_mut() {
-            self.process_command(&mut vm);
+            self.process_command(vm);
             }
         }
     }
 
     pub fn process_command(&mut self, vm: &mut VMProcessor) {
         self.set_vars(vm);
-        let cmd: &str= self.get_command().as_text(); // not implemented yet, vyks per mmu
-        match cmd {
+        let cmd: String= self.get_command().as_text().unwrap(); // not implemented yet, vyks per mmu
+        match cmd.as_str() {
           "ADDR" => self.process_addr(vm),
           //"ADDV" => self.process_addv(vm),
           //"SUBR" => self.process_subr(vm),
@@ -262,9 +262,9 @@ impl RMProcessor{
         self.get_vars(vm);
         self.ip+=self.ip+1;
         self.ptr+=self.ptr+1;
-        let cmd: &str=self.get_command().as_text();
-        let reg;
-        match cmd {
+        let cmd: String=self.get_command().as_text().unwrap();
+        let reg :&mut u32;
+        match cmd.as_str() {
             "REGA" => reg = &mut self.ax,
             "REGB" => reg = &mut self.bx,
             "REGC" => reg = &mut self.cx,
@@ -272,8 +272,8 @@ impl RMProcessor{
         }
         self.ip+=self.ip+1;
         self.ptr+=self.ptr+1;
-        let cmd: &str =self.get_command().as_text();
-        match cmd{
+        let cmd: String =self.get_command().as_text().unwrap();
+        match cmd.as_str(){
             "REGA" => *reg += self.ax,
             "REGB" => *reg += self.bx,
             "REGC" => *reg += self.cx,
