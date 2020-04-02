@@ -54,6 +54,9 @@ impl Word {
         }
         false
     }
+    pub fn get_data(&self) -> [u8; 4] {
+        self.data
+    }
     pub fn get_byte(self, index: usize) -> Option<u8> {
         if index >= 4 {
             return None;
