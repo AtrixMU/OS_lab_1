@@ -55,8 +55,10 @@ impl RMProcessor {
         }
     }
 
-    pub fn get_command(&self) -> Word {
-        self.mmu.get_word(self.ptr, self.ip)
+    pub fn get_command(&mut self) -> Word {
+        let w = self.mmu.get_word(self.ptr, self.ip);
+        self.ip += 1;
+        w
       }
 }
 
@@ -174,19 +176,22 @@ impl Processor for RMProcessor {
 }
 
 impl RMProcessor{
-    pub fn instruction_loop(mut self) {
-        while true {
-          for vm in self.vm_list.iter_mut() {
-            self.process_command(vm);
+    pub fn instruction_loop(&mut self) {
+        loop {
+            let vm_len = self.vm_list.len();
+            for i in 0..vm_len {
+                self.process_command(i);
             }
+            self.vm_list.retain(|e| !e.is_finished());
         }
     }
 
-    pub fn process_command(&mut self, vm: &mut VMProcessor) {
+    pub fn process_command(&mut self, vm: usize) {
         self.set_vars(vm);
-        let cmd: String= self.get_command().as_text().unwrap(); // not implemented yet, vyks per mmu
-        match cmd.as_str() {
-          "ADDR" => self.process_addr(vm),
+        let cmd: String = self.get_command().as_text().unwrap(); // not implemented yet, vyks per mmu
+        let c = cmd.as_str();
+        match c {
+            "ADDR" => self.process_addr(vm),
           //"ADDV" => self.process_addv(vm),
           //"SUBR" => self.process_subr(vm),
           //"SUBV" => self.process_subv(vm),
@@ -232,56 +237,52 @@ impl RMProcessor{
         }
     }
       
-    pub fn get_vars(&mut self, vm: &VMProcessor) {
-        self.ax = vm.get_ax();
-        self.bx = vm.get_bx();
-        self.cx = vm.get_cx();
-        self.dx = vm.get_dx();
-        self.sr = vm.get_sr();
-        self.ptr = vm.get_ptr();
-        self.ip = vm.get_ic();
+    pub fn get_vars(&mut self, vm: usize) {
+        self.ax = self.vm_list[vm].get_ax();
+        self.bx = self.vm_list[vm].get_bx();
+        self.cx = self.vm_list[vm].get_cx();
+        self.dx = self.vm_list[vm].get_dx();
+        self.sr = self.vm_list[vm].get_sr();
+        self.ptr = self.vm_list[vm].get_ptr();
+        self.ip = self.vm_list[vm].get_ic();
     }
 
-    pub fn set_vars(self, vm: &mut VMProcessor) {
-        vm.set_ax(self.ax);
-        vm.set_bx(self.bx);
-        vm.set_cx(self.cx);
-        vm.set_dx(self.dx);
-        vm.set_ic(self.ip);
-        vm.set_sr(self.sr);
-        vm.set_ptr(self.ptr);
-      }
+    pub fn set_vars(&mut self, vm: usize) {
+        self.vm_list[vm].set_ax(self.ax);
+        self.vm_list[vm].set_bx(self.bx);
+        self.vm_list[vm].set_cx(self.cx);
+        self.vm_list[vm].set_dx(self.dx);
+        self.vm_list[vm].set_ic(self.ip);
+        self.vm_list[vm].set_sr(self.sr);
+        self.vm_list[vm].set_ptr(self.ptr);
+    }
       
 
 
 }
 
-impl RMProcessor{
-
-    pub fn process_addr(&mut self,vm: &VMProcessor){
+impl RMProcessor {
+    pub fn process_addr(&mut self, vm: usize){
         self.get_vars(vm);
-        self.ip+=self.ip+1;
-        self.ptr+=self.ptr+1;
-        let cmd: String=self.get_command().as_text().unwrap();
-        let reg :&mut u32;
-        match cmd.as_str() {
-            "REGA" => reg = &mut self.ax,
-            "REGB" => reg = &mut self.bx,
-            "REGC" => reg = &mut self.cx,
-            "REGD" => reg = &mut self.dx,
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let cmd_2: String = self.get_command().as_text().unwrap();
+        let c_2 = cmd_2.as_str();
+        let val: u32;
+        match c_2 {
+            "REGA" => val = self.ax,
+            "REGB" => val = self.bx,
+            "REGC" => val = self.cx,
+            "REGD" => val = self.dx,
+            _ => panic!(),
         }
-        self.ip+=self.ip+1;
-        self.ptr+=self.ptr+1;
-        let cmd: String =self.get_command().as_text().unwrap();
-        match cmd.as_str(){
-            "REGA" => *reg += self.ax,
-            "REGB" => *reg += self.bx,
-            "REGC" => *reg += self.cx,
-            "REGD" => *reg += self.dx,
+        let c_1 = cmd_1.as_str();
+        match c_1 {
+            "REGA" => self.ax += val,
+            "REGB" => self.bx += val,
+            "REGC" => self.cx += val,
+            "REGD" => self.dx += val,
+            _ => panic!(),
         }
-        self.ip+=self.ip+1;
-        self.ptr+=self.ptr+1;
-
     }
 }
 

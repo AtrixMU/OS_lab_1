@@ -10,6 +10,7 @@ pub struct VMProcessor {
     ic: u32,
     sr: u16,
     ptr: u32,
+    is_finished: bool,
 }
 
 impl VMProcessor {
@@ -23,7 +24,11 @@ impl VMProcessor {
             ic: 0,
             sr: 0,
             ptr: 0,
+            is_finished: false,
         }
+    }
+    pub fn is_finished(&self) -> bool {
+        self.is_finished
     }
 }
 
