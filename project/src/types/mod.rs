@@ -74,7 +74,7 @@ impl Word {
             if 0x20u8 <= byte && byte <= 0x7Eu8 {
                 result.push(byte as char);
             }
-            else if byte == 0 {
+            else if byte == 0 || byte == 13 {
                 return Ok(result);
             }
             else {
