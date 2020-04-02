@@ -1,5 +1,5 @@
 use crate::types::Word;
-use crate::consts::{KERNEL_MEMORY_SIZE, USER_MEMORY_SIZE};
+use crate::consts::{KERNEL_MEMORY_SIZE, USER_MEMORY_SIZE, PAGE_SIZE};
 
 #[derive(Debug)]
 pub struct MemoryManagementUnit {
@@ -15,9 +15,9 @@ impl MemoryManagementUnit {
         }
     }
 
-    pub fn get_word(ptr: u32, ic: u32) -> Word {
-        let page_i: = ic / PAGE_SIZE;
-        let word_i: = ic % PAGE_SIZE;
+    pub fn get_word(&self,ptr: u32, ic: u32) -> Word {
+        let page_i = ic / PAGE_SIZE;
+        let word_i = ic % PAGE_SIZE;
         let page_addr = self.user_memory[(ptr * 16 + page_i) as usize].as_u32();
         let word = self.user_memory[(page_addr * 16 + word_i) as usize];
         word
