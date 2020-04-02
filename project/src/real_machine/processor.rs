@@ -11,6 +11,7 @@ use super::memory_management_unit::MemoryManagementUnit;
 use crate::traits::Processor;
 use crate::consts::*;
 use crate::types::Word;
+use std::io::stdin;
 // The processor struct for our real machine.
 // Debug allows us to print the struct using println!("{:?}", struct_name)
 #[derive(Debug)]
@@ -207,18 +208,18 @@ impl RMProcessor{
             "XORV" => self.process_xorv(vm),
             "CMPR" => self.process_cmpr(vm),
             "CMPV" => self.process_cmpv(vm),
-          //"JUMP" => self.process_jump(vm),
-          //"JPEQ" => self.process_jpeq(vm),
-          //"JPOF" => self.process_jpof(vm),
-          //"JPGE" => self.process_jpge(vm),
-          //"JPBE" => self.process_jpbe(vm),
-          //"JMPG" => self.process_jmpg(vm),
-          //"JMPB" => self.process_jmpb(vm),
-          //"LOOP" => self.process_loop(vm),
+            "JUMP" => self.process_jump(vm),
+            "JPEQ" => self.process_jpeq(vm),
+            "JPOF" => self.process_jpof(vm),
+            "JPGE" => self.process_jpge(vm),
+            "JPBE" => self.process_jpbe(vm),
+            "JMPG" => self.process_jmpg(vm),
+            "JMPB" => self.process_jmpb(vm),
+            "LOOP" => self.process_loop(vm),
             "PRTN" => self.process_prtn(vm),
-          //"GETN" => self.process_getn(vm),
-          //"PRTS" => self.process_prts(vm),
-          //"GETS" => self.process_gets(vm),
+            "GETN" => self.process_getn(vm),
+            "PRTS" => self.process_prts(vm),
+            "GETS" => self.process_gets(vm),
             "MOVR" => self.process_movr(vm),
             "MOVN" => self.process_movn(vm),
           //"LOAD" => self.process_load(vm),
@@ -287,8 +288,8 @@ impl RMProcessor {
 
     pub fn process_addv(&mut self, vm:usize){
         self.get_vars(vm);
-        let cmd_1: String=self.get_command().as_text().unwrap();
-        let val: u32= self.get_command().as_u32();
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let val: u32 = self.get_command().as_u32();
         let c_1 = cmd_1.as_str();
         match c_1{
             "REGA" => self.ax += val,
@@ -326,8 +327,8 @@ impl RMProcessor {
 
     pub fn process_subv(&mut self, vm:usize){
         self.get_vars(vm);
-        let cmd_1: String=self.get_command().as_text().unwrap();
-        let val: u32= self.get_command().as_u32();
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let val: u32 = self.get_command().as_u32();
         let c_1 = cmd_1.as_str();
         match c_1{
             "REGA" => self.ax -= val,
@@ -340,8 +341,8 @@ impl RMProcessor {
 
     pub fn process_mulr(&mut self, vm:usize){
         self.get_vars(vm);
-        let cmd_1: String=self.get_command().as_text().unwrap();
-        let cmd_2: String=self.get_command().as_text().unwrap();
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let cmd_2: String = self.get_command().as_text().unwrap();
         let c_2 = cmd_2.as_str();
         let val: u32;
         match c_2 {
@@ -363,8 +364,8 @@ impl RMProcessor {
 
     pub fn process_mulv(&mut self, vm:usize){
         self.get_vars(vm);
-        let cmd_1: String=self.get_command().as_text().unwrap();
-        let val: u32= self.get_command().as_u32();
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let val: u32 = self.get_command().as_u32();
         let c_1 = cmd_1.as_str();
         match c_1{
             "REGA" => self.ax *= val,
@@ -424,8 +425,8 @@ impl RMProcessor {
 
     pub fn process_andr(&mut self, vm:usize){
         self.get_vars(vm);
-        let cmd_1: String=self.get_command().as_text().unwrap();
-        let cmd_2: String=self.get_command().as_text().unwrap();
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let cmd_2: String = self.get_command().as_text().unwrap();
         let c_2 = cmd_2.as_str();
         let val: u32;
         match c_2 {
@@ -447,8 +448,8 @@ impl RMProcessor {
 
     pub fn process_andv(&mut self, vm:usize){
         self.get_vars(vm);
-        let cmd_1: String=self.get_command().as_text().unwrap();
-        let val: u32= self.get_command().as_u32();
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let val: u32 = self.get_command().as_u32();
         let c_1 = cmd_1.as_str();
         match c_1{
             "REGA" => self.ax &= val,
@@ -461,8 +462,8 @@ impl RMProcessor {
 
     pub fn process_orr(&mut self, vm:usize){
         self.get_vars(vm);
-        let cmd_1: String=self.get_command().as_text().unwrap();
-        let cmd_2: String=self.get_command().as_text().unwrap();
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let cmd_2: String = self.get_command().as_text().unwrap();
         let c_2 = cmd_2.as_str();
         let val: u32;
         match c_2 {
@@ -484,8 +485,8 @@ impl RMProcessor {
 
     pub fn process_orv(&mut self, vm:usize){
         self.get_vars(vm);
-        let cmd_1: String=self.get_command().as_text().unwrap();
-        let val: u32= self.get_command().as_u32();
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let val: u32 = self.get_command().as_u32();
         let c_1 = cmd_1.as_str();
         match c_1{
             "REGA" => self.ax |= val,
@@ -521,8 +522,8 @@ impl RMProcessor {
 
     pub fn process_xorv(&mut self, vm:usize){
         self.get_vars(vm);
-        let cmd_1: String=self.get_command().as_text().unwrap();
-        let val: u32= self.get_command().as_u32();
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let val: u32 = self.get_command().as_u32();
         let c_1 = cmd_1.as_str();
         match c_1{
             "REGA" => self.ax ^= val,
@@ -535,8 +536,8 @@ impl RMProcessor {
 
     pub fn process_cmpr(&mut self, vm:usize){
         self.get_vars(vm);
-        let cmd_1: String=self.get_command().as_text().unwrap();
-        let cmd_2: String=self.get_command().as_text().unwrap();
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let cmd_2: String = self.get_command().as_text().unwrap();
         let c_2 = cmd_2.as_str();
         let val: u32;
         let val_2:u32;
@@ -557,7 +558,7 @@ impl RMProcessor {
         }
         match val.checked_sub(val_2){
             Some(v) =>{
-                if v ==0{
+                if v == 0{
                     self.set_zero_flag(true);
                     self.set_sign_flag(false);
                     self.set_overflow_flag(false);
@@ -579,8 +580,8 @@ impl RMProcessor {
     
     pub fn process_cmpv(&mut self, vm:usize){
         self.get_vars(vm);
-        let cmd_1: String=self.get_command().as_text().unwrap();
-        let val_2: u32= self.get_command().as_u32();
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let val_2: u32 = self.get_command().as_u32();
         let val: u32;
         let c_1 = cmd_1.as_str();
         match c_1 {
@@ -612,8 +613,90 @@ impl RMProcessor {
         }
     }
 
+    pub fn process_jump(&mut self, vm:usize){
+        self.get_vars(vm);
+        let val: u32= self.get_command().as_u32();
+        self.ip = val;
+    }
 
-    
+    pub fn process_jpeq(&mut self, vm:usize){
+        self.get_vars(vm);
+        if self.get_zero_flag(){
+            let val: u32= self.get_command().as_u32();
+            self.ip = val;
+        }
+    }
+
+    pub fn process_jpof(&mut self, vm:usize){
+        self.get_vars(vm);
+        if self.get_overflow_flag(){
+            let val: u32= self.get_command().as_u32();
+            self.ip = val;
+        }
+    }
+
+    pub fn process_jpge(&mut self, vm:usize){
+        self.get_vars(vm);
+        if !self.get_sign_flag(){
+            let val: u32= self.get_command().as_u32();
+            self.ip = val;
+        }
+    }
+    pub fn process_jpbe(&mut self, vm:usize){
+        self.get_vars(vm);
+        if self.get_sign_flag(){
+            let val: u32= self.get_command().as_u32();
+            self.ip = val;
+        }
+    }
+    pub fn process_jmpg(&mut self, vm:usize){
+        self.get_vars(vm);
+        if !self.get_zero_flag() && !self.get_sign_flag(){
+            let val: u32= self.get_command().as_u32();
+            self.ip = val;
+        }
+    }
+    pub fn process_jmpb(&mut self, vm:usize){
+        self.get_vars(vm);
+        if !self.get_zero_flag() && self.get_sign_flag(){
+            let val: u32= self.get_command().as_u32();
+            self.ip = val;
+        }
+    }
+
+    pub fn process_loop(&mut self, vm:usize){
+        self.get_vars(vm);
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let val: u32 = self.get_command().as_u32();
+        let c_1 = cmd_1.as_str();
+        match c_1 {
+            "REGA" => {
+                if self.ax != 0{
+                    self.ax -= 1;
+                    self.ip = val;
+                }
+        },
+            "REGB" => {
+                if self.bx != 0{
+                    self.bx -= 1;
+                    self.ip=val;
+                }
+        },
+            "REGC" => {
+                if self.cx != 0{
+                    self.cx -= 1;
+                    self.ip = val;
+                 }
+        },
+            "REGD" => {
+                if self.dx != 0{
+                    self.dx -= 1;
+                    self.ip = val;
+            }
+        },
+            _ => panic!(),
+        }
+    }
 
     pub fn process_prtn(&mut self, vm:usize){
         self.get_vars(vm);
@@ -623,15 +706,65 @@ impl RMProcessor {
             "REGA" => println!("{}",self.ax),
             "REGB" => println!("{}",self.bx),
             "REGC" => println!("{}",self.cx),
-            "REGD" => println!("{}",self.cx),
+            "REGD" => println!("{}",self.dx), 
+            _ => panic!(),
+        } //TODO 
+    }
+
+    pub fn process_getn(&mut self, vm:usize){
+        self.get_vars(vm);
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let c_1 = cmd_1.as_str();
+        let mut input = String::new();
+        stdin().read_line(&mut input).unwrap();
+        let val: u32 = input.trim().parse().unwrap();
+        match c_1{
+            "REGA" => self.ax = val,
+            "REGB" => self.bx = val,
+            "REGC" => self.cx = val,
+            "REGD" => self.dx = val, 
+            _ => panic!(),
+        }
+    }
+
+    pub fn process_prts(&mut self, vm:usize){
+        self.get_vars(vm);
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let val: u32;
+        let c_1 = cmd_1.as_str();
+        match c_1{
+            "REGA" => val = self.ax,
+            "REGB" => val = self.bx,
+            "REGC" => val = self.cx,
+            "REGD" => val = self.dx, 
+            _ => panic!(),
+        }
+        let word = Word::from_u32(val);
+        let print: String = word.as_text().unwrap();
+        println!("{}",print)
+        
+    }
+
+    pub fn process_gets(&mut self, vm:usize){
+        self.get_vars(vm);
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let c_1 = cmd_1.as_str();
+        let mut input = String::new();
+        stdin().read_line(&mut input).unwrap();
+        let word = Word::from_string(input);
+        match c_1{
+            "REGA" => self.ax = word.as_u32(),
+            "REGB" => self.bx = word.as_u32(),
+            "REGC" => self.cx = word.as_u32(),
+            "REGD" => self.dx = word.as_u32(), 
             _ => panic!(),
         }
     }
 
     pub fn process_movr(&mut self, vm:usize){
         self.get_vars(vm);
-        let cmd_1: String=self.get_command().as_text().unwrap();
-        let cmd_2: String=self.get_command().as_text().unwrap();
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let cmd_2: String = self.get_command().as_text().unwrap();
         let c_2 = cmd_2.as_str();
         let val: u32;
         match c_2 {
@@ -653,8 +786,8 @@ impl RMProcessor {
 
     pub fn process_movn(&mut self, vm:usize){
         self.get_vars(vm);
-        let cmd_1: String=self.get_command().as_text().unwrap();
-        let val: u32= self.get_command().as_u32();
+        let cmd_1: String = self.get_command().as_text().unwrap();
+        let val: u32 = self.get_command().as_u32();
         let c_1 = cmd_1.as_str();
         match c_1{
             "REGA" => self.ax = val,
