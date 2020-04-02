@@ -205,8 +205,8 @@ impl RMProcessor{
              "ORV" => self.process_orv(vm),
             "XORR" => self.process_xorr(vm),
             "XORV" => self.process_xorv(vm),
-          //"CMPR" => self.process_cmpr(vm),
-          //"CMPV" => self.process_cmpv(vm),
+            "CMPR" => self.process_cmpr(vm),
+            "CMPV" => self.process_cmpv(vm),
           //"JUMP" => self.process_jump(vm),
           //"JPEQ" => self.process_jpeq(vm),
           //"JPOF" => self.process_jpof(vm),
@@ -575,9 +575,42 @@ impl RMProcessor {
             }
 
         }
-        
     }
+    
+    pub fn process_cmpv(&mut self, vm:usize){
+        self.get_vars(vm);
+        let cmd_1: String=self.get_command().as_text().unwrap();
+        let val_2: u32= self.get_command().as_u32();
+        let val: u32;
+        let c_1 = cmd_1.as_str();
+        match c_1 {
+            "REGA" => val = self.ax,
+            "REGB" => val = self.bx,
+            "REGC" => val = self.cx,
+            "REGD" => val = self.dx,
+            _ => panic!(),
+        }
+        match val.checked_sub(val_2){
+            Some(v) =>{
+                if v ==0{
+                    self.set_zero_flag(true);
+                    self.set_sign_flag(false);
+                    self.set_overflow_flag(false);
+                }
+                else{
+                    self.set_zero_flag(false);
+                    self.set_sign_flag(false);
+                    self.set_overflow_flag(false)
+                } 
+            }
+            None => {
+                self.set_zero_flag(false);
+                self.set_sign_flag(true);
+                self.set_overflow_flag(false)
+            }
 
+        }
+    }
 
 
     
