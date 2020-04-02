@@ -9,6 +9,11 @@
 use project::virtual_machine::processor::VMProcessor;
 use project::real_machine::processor::RMProcessor;
 use project::traits::Processor;
+use std::fs::File;
+use std::path::Path;
+use std::error::Error;
+use std::io::{BufRead,BufReader};
+use std::io::prelude::*;
 
 fn main() {
     println!("Hello, world!");

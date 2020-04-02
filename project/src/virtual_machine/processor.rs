@@ -16,10 +16,10 @@ impl VMProcessor {
     // Create new instance with default values
     pub fn new() -> VMProcessor {
         VMProcessor {
-            r1: 0,
-            r2: 0,
-            r3: 0,
-            r4: 0,
+            ax: 0,
+            bx: 0,
+            cx: 0,
+            dx: 0,
             ic: 0,
             sr: 0,
             ptr: 0,
