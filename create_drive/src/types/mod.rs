@@ -36,6 +36,24 @@ impl Word {
             data: [0, 0, 0, 0],
         }
     }
+    pub fn from_string(text: String) -> Word {
+        let mut w = Word::new();
+        w.set_text(text);
+        w
+    }
+    pub fn from_u32(number: u32) -> Word {
+        let mut w = Word::new();
+        w.set_value(number);
+        w
+    }
+    pub fn is_empty(&self) -> bool {
+        for b in &self.data {
+            if *b > 0 {
+                return true;
+            }
+        }
+        false
+    }
     pub fn get_byte(&self, index: usize) -> Option<u8> {
         if index >= 4 {
             return None;
