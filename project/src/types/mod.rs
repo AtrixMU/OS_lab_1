@@ -1,3 +1,11 @@
+#![warn(
+    clippy::all,
+    clippy::restriction,
+    clippy::pedantic,
+    clippy::nursery,
+    clippy::cargo,
+)]
+
 use std::error;
 use std::fmt;
 
@@ -56,11 +64,11 @@ impl Word {
             self.data[3] as u32;
         result
     }
-    pub fn set_word(&mut self, input: [u8; 4]) {
+    pub fn set_bytes(&mut self, input: [u8; 4]) {
         self.data = input;
     }
     pub fn set_value(&mut self, input: u32) {
-        self.set_word(self.u32_to_u8_array(input));
+        self.set_bytes(self.u32_to_u8_array(input));
     }
     pub fn set_text(&mut self, input: String) {
         let mut temp_str = input;
@@ -71,6 +79,9 @@ impl Word {
             *byte = source_byte;
         }
     }
+    pub fn set_word(&mut self, input: Word) {
+        self.set_value(input.as_u32());
+    }
     pub fn u32_to_u8_array(self, x: u32) -> [u8; 4] {
         let b0: u8 = ((x >> 24) & 0xff) as u8;
         let b1: u8 = ((x >> 16) & 0xff) as u8;
@@ -78,6 +89,7 @@ impl Word {
         let b3: u8 = (x & 0xff) as u8;
         return [b0, b1, b2, b3]
     }
+
 }
 
 #[cfg(test)]
@@ -129,10 +141,10 @@ mod processor_tests {
         assert_eq!(w.as_u32(), 0x00310000u32);
     }
     #[test]
-    pub fn test_set_word() {
+    pub fn test_set_bytes() {
         let mut w = Word::new();
         let input = [1, 2, 3, 5];
-        w.set_word(input);
+        w.set_bytes(input);
         for (b, i) in w.data.iter().zip(input.iter()) {
             assert_eq!(b, i);
         }
