@@ -168,6 +168,102 @@ impl Processor for RMProcessor {
     }
 }
 
+impl RMProcessor{
+    pub fn instruction_loop(&mut self) {
+        while true {
+          for vm in self.vm_list.iter_mut() {
+            self.process_command(&mut vm);
+            }
+        }
+    }
+
+    pub fn process_command(&mut self, vm: &mut VMPRocessor) {
+        self.set_vars(vm);
+        let cmd: Word = self.get_command().as_text(); // not implemented yet, vyks per mmu
+        match cmd {
+          "ADDR" => self.process_addr(vm),
+          "ADDV" => self.process_addv(vm),
+          "SUBR" => self.process_subr(vm),
+          "SUBV" => self.process_subv(vm),
+          "MULR" => self.process_mulr(vm),
+          "MULV" => self.process_mulv(vm),
+          "DIVR" => self.process_divr(vm),
+          "DIVV" => self.process_divv(vm),
+          "ANDR" => self.process_andr(vm),
+          "ANDV" => self.process_andv(vm),
+          "ORR" => self.process_orr(vm),
+          "ORV" => self.process_orv(vm),
+          "XORR" => self.process_xorr(vm),
+          "XORV" => self.process_xorv(vm),
+          "CMPR" => self.process_cmpr(vm),
+          "CMPV" => self.process_cmpv(vm),
+          "JUMP" => self.process_jump(vm),
+          "JPEQ" => self.process_jpeq(vm),
+          "JPOF" => self.process_jpof(vm),
+          "JPGE" => self.process_jpge(vm),
+          "JPBE" => self.process_jpbe(vm),
+          "JMPG" => self.process_jmpg(vm),
+          "JMPB" => self.process_jmpb(vm),
+          "LOOP" => self.process_loop(vm),
+          "PRTN" => self.process_prtn(vm),
+          "GETN" => self.process_getn(vm),
+          "PRTS" => self.process_prts(vm),
+          "GETS" => self.process_gets(vm),
+          "MOVR" => self.process_movr(vm),
+          "MOVN" => self.process_movn(vm),
+          "LOAD" => self.process_load(vm),
+          "STOR" => self.process_stor(vm),
+          "OPEN" => self.process_open(vm),
+          "READ" => self.process_read(vm),
+          "WRT" => self.process_wrt(vm),
+          "CLS" => self.process_cls(vm),
+          "DEL" => self.process_del(vm),
+          "ACTV" => self.process_actv(vm),
+          "GTST" => self.process_gtst(vm),
+          "STST" => self.process_stst(vm),
+          "HALT" => self.process_halt(vm),
+          
+          _ => println!("NOT IMPLEMENTED"),
+        }
+    }
+      
+    pub fn get_vars(&mut self, vm: VMPRocessor) {
+        self.ax = vm.get_ax();
+        self.bx = vm.get_bx();
+        self.cx = vm.get_cx();
+        self.dx = vm.get_dx();
+        self.sr = vm.get_sr();
+        self.ptr = vm.get_ptr();
+        self.ip = vm.get_ic();
+    }
+
+    pub fn set_vars(self, vm: &mut VMProcessor) {
+        vm.set_ax(self.ax);
+        vm.set_bx(self.bx);
+        vm.set_cx(self.cx);
+        vm.set_dx(self.dx);
+        vm.set_ic(self.ip);
+        vm.set_sr(self.sr);
+        vm.set_ptr(self.ptr);
+      }
+
+
+
+
+    pub fn process_addr(&mut self,vm: &mut VMProcessor) {
+        self.ip++;
+        let reg: Word = self.get_command().as_test();
+        match reg{
+            "REGA"
+        }
+        
+    }
+
+}
+
+
+
+
 
 #[cfg(test)]
 mod processor_tests {
