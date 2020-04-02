@@ -1,3 +1,4 @@
+//Matas Udris, Robertas Povedionok 4 grupe, informatika
 pub trait Processor {
     fn get_carry_flag(&self) -> bool;
     fn get_parity_flag(&self) -> bool;

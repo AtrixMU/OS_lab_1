@@ -1,3 +1,4 @@
+//Matas Udris, Robertas Povedionok 4 grupe, informatika
 #![warn(
     clippy::all,
     clippy::restriction,
@@ -23,6 +24,6 @@ fn main() {
     // mmu.print_virtual_memory(temp);
     // mmu.unload_program(temp);
     // mmu.print_user_memory();
-    test.add_program("Simple_program4".to_string());
+    test.add_program("Simple_program5".to_string());
     test.run_instruction_loop();
 }

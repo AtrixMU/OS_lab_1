@@ -1,3 +1,4 @@
+//Matas Udris, Robertas Povedionok 4 grupe, informatika
 pub const CARRY_FLAG: u16 = 0b0000_0000_0000_0001;
 pub const PARITY_FLAG: u16 = 0b0000_0000_0000_0100;
 pub const AUXILIARY_CARRY_FLAG: u16 = 0b0000_0000_0001_0000;
