@@ -19,11 +19,6 @@ impl MemoryManagementUnit {
         };
         mmu.mount_drive();
         mmu.print_hard_drive();
-        let temp = mmu.load_program("Simple_program".to_string()).unwrap();
-        mmu.print_user_memory();
-        mmu.print_virtual_memory(temp);
-        mmu.unload_program(temp);
-        mmu.print_user_memory();
         mmu
     }
     pub fn mount_drive(&mut self) {

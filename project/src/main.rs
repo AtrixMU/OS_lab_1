@@ -12,11 +12,17 @@ use project::traits::Processor;
 
 fn main() {
     println!("Hello, world!");
-    let test_vm = VMProcessor::new();
-    println!("{:?}", test_vm);
-    let test = RMProcessor::new();
+
+    let mut test = RMProcessor::new();
     // println!("{:?}", test);
-    println!("{:?}", test.get_zero_flag());
-    println!("{:?}", test_vm.get_supervisor_flag());
-    println!("{:?}", 0 as char);
+    // println!("{:?}", test.get_zero_flag());
+    // println!("{:?}", test_vm.get_supervisor_flag());
+    // println!("{:?}", 0 as char);
+    // let temp = mmu.load_program("Simple_program".to_string()).unwrap();
+    // mmu.print_user_memory();
+    // mmu.print_virtual_memory(temp);
+    // mmu.unload_program(temp);
+    // mmu.print_user_memory();
+    test.add_program("Simple_program2".to_string());
+    test.run_instruction_loop();
 }

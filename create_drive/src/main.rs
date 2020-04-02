@@ -128,6 +128,9 @@ fn write_file_contents(
     if let Ok(lines) = read_lines(path) {
         for line in lines {
             if let Ok(cmd) = line {
+                if cmd == "" {
+                    continue;
+                }
                 println!("{} {}", counter, cmd);
                 if counter == PAGE_SIZE {
                     block_number += 1;
@@ -241,6 +244,6 @@ fn main() {
         add_file(&mut mem, u);
     }
     print_disk(&mem);
-    let mut file = File::create("disk.dsk").unwrap();
+    let mut file = File::create("../project/disk/disk.dsk").unwrap();
     write_to_file(&mem, &mut file);
 }

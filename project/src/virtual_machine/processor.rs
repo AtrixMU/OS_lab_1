@@ -15,7 +15,7 @@ pub struct VMProcessor {
 
 impl VMProcessor {
     // Create new instance with default values
-    pub fn new() -> VMProcessor {
+    pub fn new(ptr: u32) -> VMProcessor {
         VMProcessor {
             ax: 0,
             bx: 0,
@@ -23,7 +23,7 @@ impl VMProcessor {
             dx: 0,
             ic: 0,
             sr: 0,
-            ptr: 0,
+            ptr: ptr,
             is_finished: false,
         }
     }
