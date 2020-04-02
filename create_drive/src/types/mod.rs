@@ -46,6 +46,11 @@ impl Word {
         w.set_value(number);
         w
     }
+    pub fn from_bytes(input: [u8; 4]) -> Word {
+        let mut w = Word::new();
+        w.set_bytes(input);
+        w
+    }
     pub fn is_empty(&self) -> bool {
         for b in &self.data {
             if *b > 0 {
