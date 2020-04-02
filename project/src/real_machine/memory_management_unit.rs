@@ -19,8 +19,8 @@ impl MemoryManagementUnit {
         };
         mmu.mount_drive();
         mmu.print_hard_drive();
-        // mmu.load_program("Simple_program".to_string());
-        // mmu.print_user_memory();
+        mmu.load_program("Simple_program".to_string());
+        mmu.print_user_memory();
         mmu
     }
     pub fn mount_drive(&mut self) {
@@ -40,38 +40,38 @@ impl MemoryManagementUnit {
         }
     }
     pub fn print_hard_drive(&self) {
-        println!("--------------------------------------------------------HARD DRIVE MEMORY-----------------------------------------------------------");
+        println!("{:-<130}{:-<150}", "", "HARD DRIVE MEMORY");
         for i in 0..(self.hard_drive.len() / PAGE_SIZE) {
-            print!("PAGE {}:    ", i);
+            print!("PAGE {:2}: ", i);
             for j in 0..PAGE_SIZE {
                 for b in 0..4 {
-                    print!("{} ", self.hard_drive[i * PAGE_SIZE + j]
+                    print!("{:3} ", self.hard_drive[i * PAGE_SIZE + j]
                         .get_byte(b)
                         .unwrap()
                     );
                 }
-                print!("| ");
+                print!("|");
             }
             println!("");
         }
-        println!("------------------------------------------------------------------------------------------------------------------------------------");
+        println!("{:-<281}", "");  
     }
     pub fn print_user_memory(&self) {
-        println!("------------------------------------------------------------USER MEMORY-------------------------------------------------------------");
+        println!("{:-<130}{:-<150}", "", "USER MEMORY");
         for i in 0..(self.user_memory.len() / PAGE_SIZE) {
-            print!("PAGE {}:    ", i);
+            print!("PAGE {:2}: ", i);
             for j in 0..PAGE_SIZE {
                 for b in 0..4 {
-                    print!("{} ", self.user_memory[i * PAGE_SIZE + j]
+                    print!("{:3} ", self.user_memory[i * PAGE_SIZE + j]
                         .get_byte(b)
                         .unwrap()
                     );
                 }
-                print!("| ");
+                print!("|");
             }
             println!("");
         }
-        println!("------------------------------------------------------------------------------------------------------------------------------------");
+        println!("{:-<281}", "");
     }
     pub fn list_programs(&self) {
         let page_start = 1;
