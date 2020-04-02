@@ -6,7 +6,6 @@
     clippy::nursery,
     clippy::cargo,
 )]
-use std::convert::TryInto;
 use crate::virtual_machine::processor::VMProcessor;
 use super::memory_management_unit::MemoryManagementUnit;
 use crate::traits::Processor;
@@ -272,7 +271,10 @@ impl RMProcessor{
           //"ACTV" => self.process_actv(),
           //"GTST" => self.process_gtst(),
           //"STST" => self.process_stst(),
-            "HALT" => self.process_halt(vm),
+            "HALT" =>  {
+                self.process_halt(vm);
+                return;
+            }
           
             _ => { 
                 println!("NOT IMPLEMENTED");
@@ -938,7 +940,9 @@ impl RMProcessor {
 
     pub fn process_halt(&mut self, vm: usize) {
         self.vm_list.get_mut(&vm).expect("Failed to get mut vm").stop();
+        println!("Deleting from {}", self.ptr);
         self.mmu.unload_program(self.ptr);
+        // self.mmu.print_user_memory();
         self.vm_list.remove(&vm);
     }
 }

@@ -34,7 +34,7 @@ impl MemoryManagementUnit {
                     }
                     self.hard_drive.push(Word::from_bytes(buffer));
                 },
-                Err(e) => panic!(),
+                Err(_) => panic!(),
             }
         }
     }
@@ -208,6 +208,20 @@ impl MemoryManagementUnit {
             let cmd_page_list_index = mem_cmd_list_page_index + i;
             let cmd_list_index = self.user_memory[cmd_page_list_index].as_u32();
             for j in 0..PAGE_SIZE {
+                if self.user_memory[
+                    (cmd_list_index as usize * PAGE_SIZE) + j
+                    ]
+                    .as_text()
+                    .is_ok()
+                    && self.user_memory[
+                        (cmd_list_index as usize * PAGE_SIZE) + j
+                        ]
+                        .as_text()
+                        .unwrap() == "HALT".to_string() {
+                    self.user_memory[(cmd_list_index as usize * PAGE_SIZE) + j].set_value(0);
+                    self.user_memory[cmd_page_list_index].set_value(0);
+                    return;
+                }
                 self.user_memory[(cmd_list_index as usize * PAGE_SIZE) + j].set_value(0);
             }
             self.user_memory[cmd_page_list_index].set_value(0);

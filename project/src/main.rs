@@ -7,9 +7,9 @@
     clippy::cargo,
 )]
 
-use project::virtual_machine::processor::VMProcessor;
+// use project::virtual_machine::processor::VMProcessor;
 use project::real_machine::processor::RMProcessor;
-use project::traits::Processor;
+// use project::traits::Processor;
 
 fn main() {
     println!("Hello, world!");
