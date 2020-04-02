@@ -14,4 +14,12 @@ impl MemoryManagementUnit {
             user_memory: [Word::new(); USER_MEMORY_SIZE].to_vec(),
         }
     }
+
+    pub fn get_word(ptr: u32, ic: u32) -> Word {
+        let page_i: = ic / PAGE_SIZE;
+        let word_i: = ic % PAGE_SIZE;
+        let page_addr = self.user_memory[(ptr * 16 + page_i) as usize].as_u32();
+        let word = self.user_memory[(page_addr * 16 + word_i) as usize];
+        word
+      }
 }
