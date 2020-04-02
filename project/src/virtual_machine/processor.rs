@@ -203,6 +203,11 @@ impl VMProcessor{
     {
         self.ptr = ptr;
     }
+
+    pub fn stop(&mut self)
+    {
+        self.is_finished=true;
+    }
 }
 
 
