@@ -49,10 +49,13 @@ impl Word {
     pub fn is_empty(&self) -> bool {
         for b in &self.data {
             if *b > 0 {
-                return true;
+                return false;
             }
         }
-        false
+        true
+    }
+    pub fn get_data(&self) -> [u8; 4] {
+        self.data
     }
     pub fn get_byte(&self, index: usize) -> Option<u8> {
         if index >= 4 {
