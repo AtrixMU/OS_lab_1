@@ -3,10 +3,10 @@ use crate::consts::*;
 
 #[derive(Debug)]
 pub struct VMProcessor {
-    r1: u32,
-    r2: u32,
-    r3: u32,
-    r4: u32,
+    ax: u32,
+    bx: u32,
+    cx: u32,
+    dx: u32,
     ic: u32,
     sr: u16,
     ptr: u32,
@@ -16,10 +16,10 @@ impl VMProcessor {
     // Create new instance with default values
     pub fn new() -> VMProcessor {
         VMProcessor {
-            r1: 0,
-            r2: 0,
-            r3: 0,
-            r4: 0,
+            ax: 0,
+            bx: 0,
+            cx: 0,
+            dx: 0,
             ic: 0,
             sr: 0,
             ptr: 0,
@@ -28,34 +28,34 @@ impl VMProcessor {
 }
 
 impl Processor for VMProcessor{
-    fn get_carry_flag(self) -> bool {
+    fn get_carry_flag(&self) -> bool {
         self.sr & CARRY_FLAG > 0
     }
-    fn get_parity_flag(self) -> bool {
+    fn get_parity_flag(&self) -> bool {
         self.sr & PARITY_FLAG > 0
     }
-    fn get_auxiliary_carry_flag(self) -> bool {
+    fn get_auxiliary_carry_flag(&self) -> bool {
         self.sr & AUXILIARY_CARRY_FLAG > 0
     }
-    fn get_zero_flag(self) -> bool {
+    fn get_zero_flag(&self) -> bool {
         self.sr & ZERO_FLAG > 0
     }
-    fn get_sign_flag(self) -> bool {
+    fn get_sign_flag(&self) -> bool {
         self.sr & SIGN_FLAG > 0
     }
-    fn get_trap_flag(self) -> bool {
+    fn get_trap_flag(&self) -> bool {
         self.sr & TRAP_FLAG > 0
     }
-    fn get_interrupt_flag(self) -> bool {
+    fn get_interrupt_flag(&self) -> bool {
         self.sr & INTERRUPT_FLAG > 0
     }
-    fn get_directional_flag(self) -> bool {
+    fn get_directional_flag(&self) -> bool {
         self.sr & DIRECTIONAL_FLAG > 0
     }
-    fn get_overflow_flag(self) -> bool {
+    fn get_overflow_flag(&self) -> bool {
         self.sr & OVERFLOW_FLAG > 0
     }
-    fn get_supervisor_flag(self) -> bool {
+    fn get_supervisor_flag(&self) -> bool {
         false
     }
     fn set_carry_flag(&mut self, value: bool) {
@@ -131,6 +131,73 @@ impl Processor for VMProcessor{
         }
     }
     fn set_supervisor_flag(&mut self, _value: bool) {}
+}
+
+
+impl VMProcessor{
+    pub fn get_ax(&self) -> u32
+    {
+        self.ax
+    }
+    
+    pub fn get_bx(&self) -> u32
+    {
+        self.bx
+    } 
+    
+    pub fn get_cx(&self) -> u32
+    {
+        self.cx
+    } 
+    
+    pub fn get_dx(&self) -> u32
+    {
+        self.dx
+    }
+
+    pub fn get_ic(&self) -> u32
+    {
+        self.ic
+    } 
+
+    pub fn get_sr(&self) -> u16
+    {
+        self.sr
+    }
+
+    pub fn get_ptr(&self) -> u32
+    {
+        self.ptr
+    }
+
+    pub fn set_ax(&mut self,ax: u32)
+    {
+        self.ax = ax;
+    }
+    pub fn set_bx(&mut self,bx: u32)
+    {
+        self.bx = bx;
+    }
+    pub fn set_cx(&mut self,cx: u32)
+    {
+        self.cx = cx;
+    }
+    pub fn set_dx(&mut self,dx: u32)
+    {
+        self.dx = dx;
+    }
+    pub fn set_ic(&mut self,ic: u32)
+    {
+        self.ic = ic;
+    }
+    pub fn set_sr(&mut self,sr: u16)
+    {
+        self.sr = sr;
+    }
+    pub fn set_ptr(&mut self,ptr: u32)
+    {
+        self.ptr = ptr;
+    }
 }
 
 
