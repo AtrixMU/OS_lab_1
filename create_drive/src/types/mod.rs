@@ -36,13 +36,13 @@ impl Word {
             data: [0, 0, 0, 0],
         }
     }
-    pub fn get_byte(self, index: usize) -> Option<u8> {
+    pub fn get_byte(&self, index: usize) -> Option<u8> {
         if index >= 4 {
             return None;
         }
         Some(self.data[index])
     }
-    pub fn as_text(self) -> Result<String, WordToTextError> {
+    pub fn as_text(&self) -> Result<String, WordToTextError> {
         let mut result = String::new();
         for &byte in self.data.iter() {
             if 0x20u8 <= byte && byte <= 0x7Eu8 {
@@ -57,7 +57,7 @@ impl Word {
         }
         return Ok(result);
     }
-    pub fn as_u32(self) -> u32 {
+    pub fn as_u32(&self) -> u32 {
         let result = self.data[0] as u32 * 0x1_00_00_00 +
             self.data[1] as u32 * 0x1_00_00 +
             self.data[2] as u32 * 0x1_00 +
@@ -82,14 +82,13 @@ impl Word {
     pub fn set_word(&mut self, input: Word) {
         self.set_value(input.as_u32());
     }
-    pub fn u32_to_u8_array(self, x: u32) -> [u8; 4] {
+    pub fn u32_to_u8_array(&self, x: u32) -> [u8; 4] {
         let b0: u8 = ((x >> 24) & 0xff) as u8;
         let b1: u8 = ((x >> 16) & 0xff) as u8;
         let b2: u8 = ((x >> 8) & 0xff) as u8;
         let b3: u8 = (x & 0xff) as u8;
         return [b0, b1, b2, b3]
     }
-
 }
 
 #[cfg(test)]

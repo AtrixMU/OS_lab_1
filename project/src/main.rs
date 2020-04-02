@@ -1,3 +1,11 @@
+#![warn(
+    clippy::all,
+    clippy::restriction,
+    clippy::pedantic,
+    clippy::nursery,
+    clippy::cargo,
+)]
+
 use project::virtual_machine::processor::VMProcessor;
 use project::real_machine::processor::RMProcessor;
 use project::traits::Processor;

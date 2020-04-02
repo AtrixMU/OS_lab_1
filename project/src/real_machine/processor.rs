@@ -1,3 +1,11 @@
+#![warn(
+    clippy::all,
+    clippy::restriction,
+    clippy::pedantic,
+    clippy::nursery,
+    clippy::cargo,
+)]
+
 use crate::virtual_machine::processor::VMProcessor;
 use super::memory_management_unit::MemoryManagementUnit;
 use crate::traits::Processor;
