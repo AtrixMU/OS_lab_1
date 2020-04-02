@@ -58,11 +58,14 @@ impl RMProcessor {
         self.mmu.print_virtual_memory(ptr);
         self.vm_list.push(VMProcessor::new(ptr));
     }
-    pub fn process_interrupt(self, process_id: u32) {
+    pub fn process_interrupt(&mut self, process_id: usize) {
         match self.pi {
-            0 => println!("all good"),
-            _ => println!("oopsie"),
+            0 => return,
+            1 => println!("PROCESS {}> ERROR: DIVISION BY ZERO", process_id),
+            4 => println!("PROCESS {}> ERROR: INVALID COMMAND", process_id),
+            _ => println!("PROCESS {}> ERROR: oopsie", process_id),
         }
+        self.vm_list[process_id].stop();
     }
 
     pub fn get_command(&mut self) -> Word {
@@ -206,9 +209,10 @@ impl RMProcessor{
     }
 
     pub fn process_command(&mut self, vm: usize) {
+        self.pi = 0;
         self.get_vars(vm);
         let cmd: String = self.get_command().as_text().unwrap();
-        println!("Now processing command {} from program {}", cmd, vm);
+        println!("program {}: Now processing command {}", vm, cmd);
         let c = cmd.as_str();
         match c {
             "ADDR" => self.process_addr(),
@@ -253,8 +257,9 @@ impl RMProcessor{
           //"STST" => self.process_stst(),
             "HALT" => self.process_halt(vm),
           
-          _ => println!("NOT IMPLEMENTED"),
+            _ => println!("NOT IMPLEMENTED"),
         }
+        self.process_interrupt(vm);
         self.set_vars(vm);
     }
       
@@ -289,7 +294,11 @@ impl RMProcessor {
             "REGB" => val = self.bx,
             "REGC" => val = self.cx,
             "REGD" => val = self.dx,
-            _ => panic!("Found: {}", c_2),
+            _ => { 
+                println!("Register not found: {}", c_2);
+                self.pi = 4;
+                return;
+            }
         }
         let c_1 = cmd_1.as_str();
         match c_1 {
@@ -297,7 +306,11 @@ impl RMProcessor {
             "REGB" => self.bx += val,
             "REGC" => self.cx += val,
             "REGD" => self.dx += val,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
     }
 
@@ -310,7 +323,11 @@ impl RMProcessor {
             "REGB" => self.bx += val,
             "REGC" => self.cx += val,
             "REGD" => self.dx += val,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
         
     }
@@ -325,7 +342,11 @@ impl RMProcessor {
             "REGB" => val = self.bx,
             "REGC" => val = self.cx,
             "REGD" => val = self.dx,
-            _ => panic!("Found: {}", c_2),
+            _ => { 
+                println!("Register not found: {}", c_2);
+                self.pi = 4;
+                return;
+            }
         }
         let c_1 = cmd_1.as_str();
         match c_1 {
@@ -333,7 +354,11 @@ impl RMProcessor {
             "REGB" => self.bx -= val,
             "REGC" => self.cx -= val,
             "REGD" => self.dx -= val,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
 
     }
@@ -347,7 +372,11 @@ impl RMProcessor {
             "REGB" => self.bx -= val,
             "REGC" => self.cx -= val,
             "REGD" => self.dx -= val,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
     }
 
@@ -361,7 +390,11 @@ impl RMProcessor {
             "REGB" => val = self.bx,
             "REGC" => val = self.cx,
             "REGD" => val = self.dx,
-            _ => panic!("Found: {}", c_2),
+            _ => { 
+                println!("Register not found: {}", c_2);
+                self.pi = 4;
+                return;
+            }
         }
         let c_1 = cmd_1.as_str();
         match c_1 {
@@ -369,7 +402,11 @@ impl RMProcessor {
             "REGB" => self.bx *= val,
             "REGC" => self.cx *= val,
             "REGD" => self.dx *= val,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
     }
 
@@ -382,7 +419,11 @@ impl RMProcessor {
             "REGB" => self.bx *= val,
             "REGC" => self.cx *= val,
             "REGD" => self.dx *= val,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
     }
 
@@ -396,20 +437,28 @@ impl RMProcessor {
             "REGB" => val = self.bx,
             "REGC" => val = self.cx,
             "REGD" => val = self.dx,
-            _ => panic!("Found: {}", c_2),
+            _ => { 
+                println!("Register not found: {}", c_2);
+                self.pi = 4;
+                return;
+            }
         }
-        if val != 0{
+        if val != 0 {
             let c_1 = cmd_1.as_str();
             match c_1 {
                 "REGA" => self.ax /= val,
                 "REGB" => self.bx /= val,
                 "REGC" => self.cx /= val,
                 "REGD" => self.dx /= val,
-                _ => panic!("Found: {}", c_1),
+                _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
             }
         }
-        else{
-             //TODO
+        else {
+            self.pi = 1;
         }
     }
 
@@ -423,11 +472,15 @@ impl RMProcessor {
             "REGB" => self.bx /= val,
             "REGC" => self.cx /= val,
             "REGD" => self.dx /= val,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
             }
         }
-        else{
-            //TODO
+        else {
+            self.pi = 1;
         }
     }
 
@@ -441,7 +494,11 @@ impl RMProcessor {
             "REGB" => val = self.bx,
             "REGC" => val = self.cx,
             "REGD" => val = self.dx,
-            _ => panic!("Found: {}", c_2),
+            _ => { 
+                println!("Register not found: {}", c_2);
+                self.pi = 4;
+                return;
+            }
         }
         let c_1 = cmd_1.as_str();
         match c_1 {
@@ -449,7 +506,11 @@ impl RMProcessor {
             "REGB" => self.bx &= val,
             "REGC" => self.cx &= val,
             "REGD" => self.dx &= val,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
     }
 
@@ -462,7 +523,11 @@ impl RMProcessor {
             "REGB" => self.bx &= val,
             "REGC" => self.cx &= val,
             "REGD" => self.dx &= val,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
     }
 
@@ -476,7 +541,11 @@ impl RMProcessor {
             "REGB" => val = self.bx,
             "REGC" => val = self.cx,
             "REGD" => val = self.dx,
-            _ => panic!("Found: {}", c_2),
+            _ => { 
+                println!("Register not found: {}", c_2);
+                self.pi = 4;
+                return;
+            }
         }
         let c_1 = cmd_1.as_str();
         match c_1 {
@@ -484,7 +553,11 @@ impl RMProcessor {
             "REGB" => self.bx |= val,
             "REGC" => self.cx |= val,
             "REGD" => self.dx |= val,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
     }
 
@@ -497,7 +570,11 @@ impl RMProcessor {
             "REGB" => self.bx |= val,
             "REGC" => self.cx |= val,
             "REGD" => self.dx |= val,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
     }
 
@@ -511,7 +588,11 @@ impl RMProcessor {
             "REGB" => val = self.bx,
             "REGC" => val = self.cx,
             "REGD" => val = self.dx,
-            _ => panic!("Found: {}", c_2),
+            _ => { 
+                println!("Register not found: {}", c_2);
+                self.pi = 4;
+                return;
+            }
         }
         let c_1 = cmd_1.as_str();
         match c_1 {
@@ -519,7 +600,11 @@ impl RMProcessor {
             "REGB" => self.bx ^= val,
             "REGC" => self.cx ^= val,
             "REGD" => self.dx ^= val,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
     }
 
@@ -532,7 +617,11 @@ impl RMProcessor {
             "REGB" => self.bx ^= val,
             "REGC" => self.cx ^= val,
             "REGD" => self.dx ^= val,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
     }
 
@@ -547,7 +636,11 @@ impl RMProcessor {
             "REGB" => val_2 = self.bx,
             "REGC" => val_2 = self.cx,
             "REGD" => val_2 = self.dx,
-            _ => panic!("Found: {}", c_2),
+            _ => { 
+                println!("Register not found: {}", c_2);
+                self.pi = 4;
+                return;
+            }
         }
         let c_1 = cmd_1.as_str();
         match c_1 {
@@ -555,7 +648,11 @@ impl RMProcessor {
             "REGB" => val = self.bx,
             "REGC" => val = self.cx,
             "REGD" => val = self.dx,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
         match val.checked_sub(val_2) {
             Some(v) => {
@@ -589,7 +686,11 @@ impl RMProcessor {
             "REGB" => val = self.bx,
             "REGC" => val = self.cx,
             "REGD" => val = self.dx,
-            _ => panic!(),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
         match val.checked_sub(val_2) {
             Some(v) => {
@@ -666,26 +767,30 @@ impl RMProcessor {
                     self.ax -= 1;
                     self.ip = val;
                 }
-        },
+            },
             "REGB" => {
                 if self.bx != 0 {
                     self.bx -= 1;
                     self.ip = val;
                 }
-        },
+            },
             "REGC" => {
                 if self.cx != 0 {
                     self.cx -= 1;
                     self.ip = val;
                  }
-        },
+            },
             "REGD" => {
                 if self.dx != 0 {
                     self.dx -= 1;
                     self.ip = val;
             }
-        },
-            _ => panic!("Found: {}", c_1),
+            },
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
     }
 
@@ -697,7 +802,11 @@ impl RMProcessor {
             "REGB" => println!("{}", self.bx),
             "REGC" => println!("{}", self.cx),
             "REGD" => println!("{}", self.dx), 
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         } //TODO 
     }
     pub fn process_getn(&mut self) {
@@ -711,7 +820,11 @@ impl RMProcessor {
             "REGB" => self.bx = val,
             "REGC" => self.cx = val,
             "REGD" => self.dx = val, 
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
     }
     pub fn process_prts(&mut self) {
@@ -723,7 +836,11 @@ impl RMProcessor {
             "REGB" => val = self.bx,
             "REGC" => val = self.cx,
             "REGD" => val = self.dx, 
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
         let word = Word::from_u32(val);
         let print: String = word.as_text().unwrap();
@@ -741,7 +858,11 @@ impl RMProcessor {
             "REGB" => self.bx = word.as_u32(),
             "REGC" => self.cx = word.as_u32(),
             "REGD" => self.dx = word.as_u32(), 
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
     }
 
@@ -755,7 +876,11 @@ impl RMProcessor {
             "REGB" => val = self.bx,
             "REGC" => val = self.cx,
             "REGD" => val = self.dx,
-            _ => panic!("Found: {}", c_2),
+            _ => { 
+                println!("Register not found: {}", c_2);
+                self.pi = 4;
+                return;
+            }
         }
         let c_1 = cmd_1.as_str();
         match c_1 {
@@ -763,7 +888,11 @@ impl RMProcessor {
             "REGB" => self.bx = val,
             "REGC" => self.cx = val,
             "REGD" => self.dx = val,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
     }
 
@@ -776,7 +905,11 @@ impl RMProcessor {
             "REGB" => self.bx = val,
             "REGC" => self.cx = val,
             "REGD" => self.dx = val,
-            _ => panic!("Found: {}", c_1),
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
         }
     }
 
