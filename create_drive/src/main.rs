@@ -61,7 +61,6 @@ fn init_disk_info(
     write_to_page(disk, 0, DISK_NAME_LEN + 1, Word::from_u32(disk_size));
 }
 
-// TODO
 fn add_file(
     disk: &mut Vec<Word>,
     meta: Metadata,
@@ -93,10 +92,20 @@ fn add_file(
     }
     cursor += LAST_MODIFIED_LEN;
     let permissions = meta.permissions;
-    write_to_page(disk, file_header_page as usize, cursor, Word::from_u32(permissions));
+    write_to_page(
+        disk,
+        file_header_page as usize,
+        cursor,
+        Word::from_u32(permissions)
+    );
     cursor += PERMISSIONS_LEN;
     let block_list_adr = get_first_empty_block(disk);
-    write_to_page(disk, file_header_page as usize, cursor, Word::from_u32(block_list_adr));
+    write_to_page(
+        disk,
+        file_header_page as usize,
+        cursor,
+        Word::from_u32(block_list_adr)
+    );
     write_file_contents(disk, block_list_adr, meta.path);
 }
 
@@ -109,7 +118,12 @@ fn write_file_contents(
     let mut counter = 0;
     write_to_page(disk, block_list_adr as usize, 0, Word::from_u32(1));
     let mut cmd_block_adr = get_first_empty_block(disk);
-    write_to_page(disk, block_list_adr as usize, block_number, Word::from_u32(cmd_block_adr));
+    write_to_page(
+        disk,
+        block_list_adr as usize,
+        block_number,
+        Word::from_u32(cmd_block_adr)
+    );
     
     if let Ok(lines) = read_lines(path) {
         for line in lines {
@@ -118,15 +132,30 @@ fn write_file_contents(
                 if counter == PAGE_SIZE {
                     block_number += 1;
                     cmd_block_adr = get_first_empty_block(disk);
-                    write_to_page(disk, block_list_adr as usize, block_number, Word::from_u32(cmd_block_adr));
+                    write_to_page(
+                        disk,
+                        block_list_adr as usize,
+                        block_number,
+                        Word::from_u32(cmd_block_adr)
+                    );
                     counter = 0;
                 }
                 let number = cmd.parse::<u32>();
                 if number.is_ok() {
-                    write_to_page(disk, cmd_block_adr as usize, counter, Word::from_u32(number.unwrap()));
+                    write_to_page(
+                        disk,
+                        cmd_block_adr as usize,
+                        counter,
+                        Word::from_u32(number.unwrap())
+                    );
                 }
                 else {
-                    write_to_page(disk, cmd_block_adr as usize, counter, Word::from_string(cmd));
+                    write_to_page(
+                        disk,
+                        cmd_block_adr as usize,
+                        counter,
+                        Word::from_string(cmd)
+                    );
                 }
                 counter += 1;
             }
