@@ -531,21 +531,43 @@ impl RMProcessor {
         let cmd_2: String=self.get_command().as_text().unwrap();
         let c_2 = cmd_2.as_str();
         let val: u32;
+        let val_2:u32;
         match c_2 {
+            "REGA" => val_2 = self.ax,
+            "REGB" => val_2 = self.bx,
+            "REGC" => val_2 = self.cx,
+            "REGD" => val_2 = self.dx,
+            _ => panic!(),
+        }
+        let c_1 = cmd_1.as_str();
+        match c_1 {
             "REGA" => val = self.ax,
             "REGB" => val = self.bx,
             "REGC" => val = self.cx,
             "REGD" => val = self.dx,
             _ => panic!(),
         }
-        let c_1 = cmd_1.as_str();
-        match c_1 {
-            "REGA" => self.ax -= val,
-            "REGB" => self.bx -= val,
-            "REGC" => self.cx -= val,
-            "REGD" => self.dx -= val,
-            _ => panic!(),
+        match val.checked_sub(val_2){
+            Some(v) =>{
+                if v ==0{
+                    self.set_zero_flag(true);
+                    self.set_sign_flag(false);
+                    self.set_overflow_flag(false);
+                }
+                else{
+                    self.set_zero_flag(false);
+                    self.set_sign_flag(false);
+                    self.set_overflow_flag(false)
+                } 
+            }
+            None => {
+                self.set_zero_flag(false);
+                self.set_sign_flag(true);
+                self.set_overflow_flag(false)
+            }
+
         }
+        
     }
 
 
