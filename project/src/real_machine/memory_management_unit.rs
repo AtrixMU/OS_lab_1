@@ -138,7 +138,7 @@ impl MemoryManagementUnit {
             return None;
         }
         let mem_cmd_list_page = mem_cmd_list_page_res.unwrap();
-        self.user_memory[mem_cmd_list_page as usize].set_value(1);
+        self.user_memory[mem_cmd_list_page as usize * PAGE_SIZE].set_value(1);
         let mut mem_cmd_page = self.get_first_empty_user_mem_page().unwrap();
         let mut disk_cmd_page =
             self.hard_drive[disk_cmd_list_page as usize * PAGE_SIZE].as_u32();
@@ -154,6 +154,7 @@ impl MemoryManagementUnit {
             println!("{} {}", counter, cmd.as_u32());
             if counter == PAGE_SIZE {
                 page_number += 1;
+                counter = 0;
                 mem_cmd_page = self.get_first_empty_user_mem_page().unwrap();
                 disk_cmd_page = self.hard_drive[
                     (disk_cmd_list_page as usize * PAGE_SIZE) + page_number
@@ -164,7 +165,6 @@ impl MemoryManagementUnit {
                     page_number,
                     Word::from_u32(mem_cmd_page)
                 );
-                counter = 0;
             }
             self.write_to_user_mem_page(mem_cmd_page as usize, counter, cmd);
             if cmd.as_text().is_ok() {
@@ -182,8 +182,7 @@ impl MemoryManagementUnit {
             if !self.hard_drive[i].is_empty() {
                 let header_page = self.hard_drive[i].as_u32();
                 let mut file_name = String::new();
-                let mut cursor = 0;
-                for j in cursor..(cursor + FILE_NAME_LEN) {
+                for j in 0..FILE_NAME_LEN {
                     let w = self.hard_drive[(header_page as usize * PAGE_SIZE) + j];
                     if w.is_empty() {
                         break;
