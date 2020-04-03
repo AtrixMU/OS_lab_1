@@ -14,6 +14,15 @@ use crate::types::Word;
 use std::io::stdin;
 use std::collections::HashMap;
 
+
+use std::{
+    time::Duration,
+};
+use crossterm::{
+    event::{poll, read, Event, KeyCode},
+    Result,
+};
+
 // The processor struct for our real machine.
 // Debug allows us to print the struct using println!("{:?}", struct_name)
 #[derive(Debug)]
@@ -58,7 +67,7 @@ impl RMProcessor {
         }
         i
     }
-    pub fn add_program(&mut self, program_name: String) {
+    pub fn add_program(&mut self, program_name: String, debug_mode: bool) {
         let ptr = self
             .mmu
             .load_program(program_name)
@@ -67,6 +76,7 @@ impl RMProcessor {
         self.mmu.print_virtual_memory(ptr);
         let key = self.find_lowest_free_pid();
         self.vm_list.insert(key, VMProcessor::new(ptr));
+        self.vm_list.get_mut(&key).expect("Error getting mut vm").set_trap_flag(debug_mode);
     }
     pub fn process_interrupt(&mut self, process_id: usize) {
         match self.pi {
@@ -221,12 +231,48 @@ impl RMProcessor{
                 return;
             }
         }
-        
+    }
+    fn print_registers(&self) {
+        println!("ax: {}", self.ax);
+        println!("bx: {}", self.bx);
+        println!("cx: {}", self.cx);
+        println!("dx: {}", self.dx);
+        println!("ip: {}", self.ip);
+        println!("ptr: {}", self.ptr);
+        println!("sr: {:#032b}", self.sr);
+    }
+    fn process_trap_flag(&mut self, vm: usize) -> Result<()> {
+        println!("Program {}> Trapped.", vm);
+        println!("Program {} registers:", vm);
+        self.print_registers();
+
+        println!("Press U to print User memory.\nPress V to print Virtual memory\nPress Esc to continue.");
+        if self.get_trap_flag() {
+            loop {
+                // Wait up to 1s for another event
+                if poll(Duration::from_millis(1_000))? {
+                    let event = read()?;
+                    if event == Event::Key(KeyCode::Char('u').into()) {
+                        self.mmu.print_user_memory();
+                    }
+                    if event == Event::Key(KeyCode::Char('v').into()) {
+                        self.mmu.print_virtual_memory(self.ptr);
+                    }
+                    if event == Event::Key(KeyCode::Esc.into()) {
+                        break;
+                    }
+                }
+            }
+        }
+        Ok(())
     }
 
     pub fn process_command(&mut self, vm: usize) {
         self.pi = 0;
         self.get_vars(vm);
+        if self.process_trap_flag(vm).is_err() {
+            panic!("");
+        }
         let cmd: String = self.get_command().as_text().expect("Failed to get text");
         println!("program {}: Now processing command {}", vm, cmd);
         let c = cmd.as_str();
