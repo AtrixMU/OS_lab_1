@@ -1,4 +1,6 @@
 //Matas Udris, Robertas Povedionok 4 grupe, informatika
+
+use rand::prelude::*;
 use crate::types::Word;
 use crate::consts::*;
 use std::fs::File;
@@ -228,12 +230,19 @@ impl MemoryManagementUnit {
         }
     }
     fn get_first_empty_user_mem_page(&mut self) -> Option<u32> {
-        for i in 0..self.user_memory.len() / PAGE_SIZE {
-            if self.user_memory[i * PAGE_SIZE].is_empty() {
-                return Some(i as u32);
+        let mut rng = rand::thread_rng();
+        loop {
+            let rand_int: usize = rng.gen_range(0, self.user_memory.len() / PAGE_SIZE);
+            if self.user_memory[rand_int * PAGE_SIZE].is_empty() {
+                return Some(rand_int as u32);
             }
         }
-        return None;
+        // for i in 0..self.user_memory.len() / PAGE_SIZE {
+        //     if self.user_memory[i * PAGE_SIZE].is_empty() {
+        //         return Some(i as u32);
+        //     }
+        // }
+        // return None;
     }
     fn write_to_user_mem_page(
         &mut self,

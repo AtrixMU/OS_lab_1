@@ -25,9 +25,9 @@ fn main() {
     // mmu.unload_program(temp);
     // mmu.print_user_memory();
     test.add_program("Simple_program".to_string());
-    // test.add_program("Simple_program2".to_string());
+    test.add_program("Simple_program2".to_string());
     test.add_program("Simple_program3".to_string());
     // test.add_program("Simple_program4".to_string());
-    // test.add_program("Simple_program5".to_string());
+    test.add_program("Simple_program5".to_string());
     test.run_instruction_loop();
 }

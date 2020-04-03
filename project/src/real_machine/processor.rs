@@ -64,7 +64,7 @@ impl RMProcessor {
             .load_program(program_name)
             .expect("Failed to load program");
         self.mmu.print_user_memory();
-        // self.mmu.print_virtual_memory(ptr);
+        self.mmu.print_virtual_memory(ptr);
         let key = self.find_lowest_free_pid();
         self.vm_list.insert(key, VMProcessor::new(ptr));
     }
@@ -941,6 +941,7 @@ impl RMProcessor {
     pub fn process_halt(&mut self, vm: usize) {
         self.vm_list.get_mut(&vm).expect("Failed to get mut vm").stop();
         println!("Deleting from {}", self.ptr);
+        // self.mmu.print_virtual_memory(self.ptr);
         self.mmu.unload_program(self.ptr);
         // self.mmu.print_user_memory();
         self.vm_list.remove(&vm);
