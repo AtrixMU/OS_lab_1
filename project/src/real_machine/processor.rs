@@ -71,6 +71,7 @@ impl RMProcessor {
         let key = self.find_lowest_free_pid();
         self.vm_list.insert(key, VMProcessor::new(ptr));
         self.vm_list.get_mut(&key).expect("Error getting mut vm").set_trap_flag(debug_mode);
+        self.ti = 100;
     }
     pub fn process_interrupt(&mut self, process_id: usize) {
         match self.pi {
@@ -214,32 +215,42 @@ impl RMProcessor{
             for key in self.vm_list.keys() {
                 key_list.push(*key);
             }
-            for i in key_list {
-                if !self.vm_list.contains_key(&i) {
-                    continue;
-                }
-                self.process_command(i);
-            }
             if self.vm_list.len() == 0 {
                 println!("All programs have halted.");
                 return;
             }
+            for vm in key_list {
+                if !self.vm_list.contains_key(&vm) {
+                    continue;
+                }
+                self.ti = 100;
+                while self.ti > 0 && self.vm_list.contains_key(&vm) && !self.vm_list[&vm].is_finished() {
+                    self.process_command(vm);
+                }
+            }
+
         }
     }
     fn print_registers(&self) {
+        println!("RM registers");
         println!("ax: {}", self.ax);
         println!("bx: {}", self.bx);
         println!("cx: {}", self.cx);
         println!("dx: {}", self.dx);
+        println!("pi: {}", self.pi);
+        println!("ki: {}", self.ki);
+        println!("ti: {}", self.ti);
         println!("ip: {}", self.ip);
         println!("ptr: {}", self.ptr);
         println!("sr: {:#032b}", self.sr);
     }
+
     fn process_trap_flag(&mut self, vm: usize) -> Result<()> {
         if self.get_trap_flag() {
             println!("Program {}> Trapped.", vm);
             println!("Program {} registers:", vm);
             self.print_registers();
+            self.vm_list[&vm].print();
     
             println!("Press U to print User memory.\nPress V to print Virtual memory\nPress Esc to continue.");
             loop {
@@ -262,6 +273,12 @@ impl RMProcessor{
     }
 
     pub fn process_command(&mut self, vm: usize) {
+        if self.ti >= 2 {
+            self.ti -= 2;
+        }
+        else {
+            self.ti = 0;
+        }
         self.pi = 0;
         self.get_vars(vm);
         if self.process_trap_flag(vm).is_err() {

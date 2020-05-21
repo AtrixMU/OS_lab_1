@@ -140,74 +140,61 @@ impl Processor for VMProcessor{
 }
 
 
-impl VMProcessor{
-    pub fn get_ax(&self) -> u32
-    {
+impl VMProcessor {
+    pub fn get_ax(&self) -> u32 {
         self.ax
     }
-    
-    pub fn get_bx(&self) -> u32
-    {
+    pub fn get_bx(&self) -> u32 {
         self.bx
     } 
-    
-    pub fn get_cx(&self) -> u32
-    {
+    pub fn get_cx(&self) -> u32 {
         self.cx
     } 
-    
-    pub fn get_dx(&self) -> u32
-    {
+    pub fn get_dx(&self) -> u32 {
         self.dx
     }
-
-    pub fn get_ic(&self) -> u32
-    {
+    pub fn get_ic(&self) -> u32 {
         self.ic
     } 
-
-    pub fn get_sr(&self) -> u16
-    {
+    pub fn get_sr(&self) -> u16 {
         self.sr
     }
-
-    pub fn get_ptr(&self) -> u32
-    {
+    pub fn get_ptr(&self) -> u32 {
         self.ptr
     }
-
-    pub fn set_ax(&mut self,ax: u32)
-    {
+    pub fn set_ax(&mut self,ax: u32) {
         self.ax = ax;
     }
-    pub fn set_bx(&mut self,bx: u32)
-    {
+    pub fn set_bx(&mut self,bx: u32) {
         self.bx = bx;
     }
-    pub fn set_cx(&mut self,cx: u32)
-    {
+    pub fn set_cx(&mut self,cx: u32) {
         self.cx = cx;
     }
-    pub fn set_dx(&mut self,dx: u32)
-    {
+    pub fn set_dx(&mut self,dx: u32) {
         self.dx = dx;
     }
-    pub fn set_ic(&mut self,ic: u32)
-    {
+    pub fn set_ic(&mut self,ic: u32) {
         self.ic = ic;
     }
-    pub fn set_sr(&mut self,sr: u16)
-    {
+    pub fn set_sr(&mut self,sr: u16) {
         self.sr = sr;
     }
-    pub fn set_ptr(&mut self,ptr: u32)
-    {
+    pub fn set_ptr(&mut self,ptr: u32) {
         self.ptr = ptr;
     }
-
-    pub fn stop(&mut self)
-    {
+    pub fn stop(&mut self) {
         self.is_finished=true;
+    }
+    pub fn print(&self) {
+        println!("VM registers");
+        println!("ax: {}", self.ax);
+        println!("bx: {}", self.bx);
+        println!("cx: {}", self.cx);
+        println!("dx: {}", self.dx);
+        println!("ip: {}", self.ic);
+        println!("ptr: {}", self.ptr);
+        println!("sr: {:#032b}", self.sr);
     }
 }
 
