@@ -1,11 +1,5 @@
 //Matas Udris, Robertas Povedionok 4 grupe, informatika
-#![warn(
-    clippy::all,
-    clippy::restriction,
-    clippy::pedantic,
-    clippy::nursery,
-    clippy::cargo,
-)]
+
 use crate::virtual_machine::processor::VMProcessor;
 use super::memory_management_unit::MemoryManagementUnit;
 use crate::traits::Processor;
@@ -256,7 +250,7 @@ impl RMProcessor{
                         self.mmu.print_user_memory();
                     }
                     if event == Event::Key(KeyCode::Char('v').into()) {
-                        self.mmu.print_virtual_memory(self.ptr);
+                        self.mmu.print_virtual_memory_words(self.ptr);
                     }
                     if event == Event::Key(KeyCode::Esc.into()) {
                         break;

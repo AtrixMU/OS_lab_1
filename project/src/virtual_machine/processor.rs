@@ -219,121 +219,121 @@ mod processor_tests {
     use crate::traits::Processor;
     #[test]
     pub fn test_carry_flag_true() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_carry_flag(true);
         assert_eq!(cpu.get_carry_flag(), true);
     }
     #[test]
     pub fn test_carry_flag_false() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_carry_flag(false);
         assert_eq!(cpu.get_carry_flag(), false);
     }
     #[test]
     pub fn test_parity_flag_true() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_parity_flag(true);
         assert_eq!(cpu.get_parity_flag(), true);
     }
     #[test]
     pub fn test_parity_flag_false() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_parity_flag(false);
         assert_eq!(cpu.get_parity_flag(), false);
     }
     #[test]
     pub fn test_auxiliary_carry_flag_true() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_auxiliary_carry_flag(true);
         assert_eq!(cpu.get_auxiliary_carry_flag(), true);
     }
     #[test]
     pub fn test_auxiliary_carry_flag_false() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_auxiliary_carry_flag(false);
         assert_eq!(cpu.get_auxiliary_carry_flag(), false);
     }
     #[test]
     pub fn test_zero_flag_true() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_zero_flag(true);
         assert_eq!(cpu.get_zero_flag(), true);
     }
     #[test]
     pub fn test_zero_flag_false() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_zero_flag(false);
         assert_eq!(cpu.get_zero_flag(), false);
     }
     #[test]
     pub fn test_sign_flag_true() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_sign_flag(true);
         assert_eq!(cpu.get_sign_flag(), true);
     }
     #[test]
     pub fn test_sign_flag_false() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_sign_flag(false);
         assert_eq!(cpu.get_sign_flag(), false);
     }
     #[test]
     pub fn test_trap_flag_true() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_trap_flag(true);
         assert_eq!(cpu.get_trap_flag(), true);
     }
     #[test]
     pub fn test_trap_flag_false() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_trap_flag(false);
         assert_eq!(cpu.get_trap_flag(), false);
     }
     #[test]
     pub fn test_interrupt_flag_true() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_interrupt_flag(true);
         assert_eq!(cpu.get_interrupt_flag(), true);
     }
     #[test]
     pub fn test_interrupt_flag_false() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_interrupt_flag(false);
         assert_eq!(cpu.get_interrupt_flag(), false);
     }
     #[test]
     pub fn test_directional_flag_true() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_directional_flag(true);
         assert_eq!(cpu.get_directional_flag(), true);
     }
     #[test]
     pub fn test_directional_flag_false() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_directional_flag(false);
         assert_eq!(cpu.get_directional_flag(), false);
     }
     #[test]
     pub fn test_overflow_flag_true() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_overflow_flag(true);
         assert_eq!(cpu.get_overflow_flag(), true);
     }
     #[test]
     pub fn test_overflow_flag_false() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_overflow_flag(false);
         assert_eq!(cpu.get_overflow_flag(), false);
     }
     #[test]
     pub fn test_supervisor_flag_true() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_supervisor_flag(true);
         assert_eq!(cpu.get_supervisor_flag(), false);
     }
     #[test]
     pub fn test_supervisor_flag_false() {
-        let mut cpu = VMProcessor::new();
+        let mut cpu = VMProcessor::new(0);
         cpu.set_supervisor_flag(false);
         assert_eq!(cpu.get_supervisor_flag(), false);
     }

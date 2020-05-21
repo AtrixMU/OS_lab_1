@@ -91,6 +91,101 @@ impl MemoryManagementUnit {
         }
         println!("{:-<281}", "");
     }
+
+    pub fn print_virtual_memory_words(&self, ptr: u32) {
+        let commands = self.parse_virtual_memory(ptr);
+        println!("{:-<130}{:-<150}", "", "VIRTUAL MEMORY");
+        for i in 0..PAGE_SIZE {
+            print!("PAGE {:2}: ", i);
+            for j in 0..PAGE_SIZE {
+                if i * PAGE_SIZE + j < commands.len() {
+                    let word = format!("{: >4}", commands[i * PAGE_SIZE + j]);
+                    for b in word.chars() {
+                        print!("{: >3} ", b);
+                    }
+                }
+                else {
+                    for b in 0..4 {
+                        print!("{:3} ", self.get_word(ptr, (i * PAGE_SIZE + j) as u32)
+                            .get_byte(b)
+                            .unwrap()
+                        );
+                    }
+                }
+                print!("|");
+            }
+            println!("");
+        }
+        println!("{:-<281}", "");
+
+    }
+
+    fn parse_virtual_memory(&self, ptr: u32) -> Vec::<String> {
+        let mut commands: Vec<String> = Vec::new();
+        let mut i = 0;
+        let mut j = 0;
+        let mut halt_received = false;
+        while !halt_received {
+            let (mut cmds, was_halt) = self.parse_cmd(ptr, &mut i, &mut j);
+            halt_received = was_halt;
+            commands.append(&mut cmds);
+        }
+        commands
+    }
+
+    fn parse_cmd(&self, ptr: u32, i: &mut usize, j: &mut usize) -> (Vec<String>, bool) {
+        let mut commands: Vec<String> = Vec::new();
+        let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().unwrap();
+        commands.push(word.clone());
+        *j += 1;
+        *i += *j / PAGE_SIZE;
+        *j %= PAGE_SIZE;
+        println!("{}", word);
+        if "HALT" == word {
+            return (commands, true);
+        }
+        if word.chars().last().unwrap() == 'R' {
+            let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().unwrap();
+            commands.push(word.clone());
+            *j += 1;
+            *i += *j / PAGE_SIZE;
+            *j %= PAGE_SIZE;
+            let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().unwrap();
+            commands.push(word.clone());
+            *j += 1;
+            *i += *j / PAGE_SIZE;
+            *j %= PAGE_SIZE;
+            return (commands, false);
+        }
+        if word.chars().last().unwrap() == 'V' || word == "LOOP" || word == "MOVN" {
+            let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().unwrap();
+            commands.push(word.clone());
+            *j += 1;
+            *i += *j / PAGE_SIZE;
+            *j %= PAGE_SIZE;
+            let word = format!("{}", self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_u32());
+            commands.push(word.clone());
+            *j += 1;
+            *i += *j / PAGE_SIZE;
+            *j %= PAGE_SIZE;
+            return (commands, false);
+        }
+        if ["JUMP", "JPEQ", "JPOF", "JPGE", "JPBE", "JMPG", "JMPB"].contains(&word.as_str()) {
+            let word = format!("{}", self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_u32());
+            commands.push(word.clone());
+            *j += 1;
+            *i += *j / PAGE_SIZE;
+            *j %= PAGE_SIZE;
+            return (commands, false);
+        }
+        let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().unwrap();
+        commands.push(word.clone());
+        *j += 1;
+        *i += *j / PAGE_SIZE;
+        *j %= PAGE_SIZE;
+        (commands, false)
+    }
+
     pub fn list_programs(&self) {
         let page_start = 1;
         for i in (page_start * PAGE_SIZE)..(DRIVE_SIZE * PAGE_SIZE) {
