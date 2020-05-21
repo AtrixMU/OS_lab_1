@@ -340,6 +340,28 @@ impl MemoryManagementUnit {
         }
         None
     }
+
+    fn find_file_start(&self, program_name: String) -> Option<u32> {
+        let page_start = 1;
+        for i in (page_start * PAGE_SIZE)..(DRIVE_SIZE * PAGE_SIZE) {
+            if !self.hard_drive[i].is_empty() {
+                let header_page = self.hard_drive[i].as_u32();
+                let mut file_name = String::new();
+                for j in 0..FILE_NAME_LEN {
+                    let w = self.hard_drive[(header_page as usize * PAGE_SIZE) + j];
+                    if w.is_empty() {
+                        break;
+                    }
+                    file_name.push_str(&w.as_text().unwrap());
+                }
+                if file_name == program_name {
+                    return Some(i as u32);
+                }
+            }
+        }
+        None
+    }
+
     pub fn unload_program(&mut self, ptr: u32) {
         let mem_cmd_list_page_index = ptr as usize * PAGE_SIZE;
         for i in 0..PAGE_SIZE {
@@ -415,5 +437,56 @@ impl MemoryManagementUnit {
             }
         }
         panic!();
+    }
+
+    pub fn open_file(&mut self, file_name: String) -> u32 {
+        let found_file = self.find_file_start(file_name.clone());
+        if found_file.is_some() {
+            return found_file.unwrap();
+        }
+        else {
+            return self.create_file(file_name);
+        }
+    }
+
+    fn create_file(&mut self, file_name: String) -> u32 {
+        let page_start = 1;
+        let mut file_ptr = 0;
+        let mut header = 0;
+        for i in (page_start * PAGE_SIZE)..(DRIVE_SIZE * PAGE_SIZE) {
+            if self.hard_drive[i].is_empty() {
+                file_ptr = i;
+                header = self.get_first_empty_disk_page();
+                self.hard_drive[i].set_value(header);
+                break;
+            }
+        }
+        if header == 0 || file_ptr == 0 {
+            panic!();
+        }
+        self.hard_drive[header as usize].set_text(file_name[0..4].to_string());
+        let block_list = self.get_first_empty_disk_page();
+        self.hard_drive[header as usize + PAGE_SIZE - 1].set_value(block_list);
+        self.hard_drive[block_list as usize].set_value(1);
+        let block_1 = self.get_first_empty_disk_page();
+        self.hard_drive[block_list as usize].set_value(block_1);
+        file_ptr as u32
+    }
+
+    fn get_first_empty_disk_page(&mut self) -> u32 {
+        let mut rng = rand::thread_rng();
+        let i = DRIVE_SIZE * PAGE_SIZE;
+        loop {
+            if i > self.hard_drive.len() {
+                for j in 0..PAGE_SIZE {
+                    self.hard_drive.push(Word::new());
+                }
+                return i as u32;
+            }
+            if self.user_memory[i].is_empty() {
+                return i as u32;
+            }
+            i += PAGE_SIZE;
+        }
     }
 }
