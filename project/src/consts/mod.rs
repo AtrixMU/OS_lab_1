@@ -24,3 +24,5 @@ pub const FILE_TYPE_LEN: usize = 1;
 pub const CREATION_DATE_LEN: usize = 2;
 pub const LAST_MODIFIED_LEN: usize = 2;
 pub const PERMISSIONS_LEN: usize = 1;
+
+pub const DATA_PAGES: usize = 1;

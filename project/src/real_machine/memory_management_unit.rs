@@ -98,8 +98,8 @@ impl MemoryManagementUnit {
         for i in 0..PAGE_SIZE {
             print!("PAGE {:2}: ", i);
             for j in 0..PAGE_SIZE {
-                if i * PAGE_SIZE + j < commands.len() {
-                    let word = format!("{: >4}", commands[i * PAGE_SIZE + j]);
+                if i >= DATA_PAGES && (i - DATA_PAGES) * PAGE_SIZE + j < commands.len() {
+                    let word = format!("{: >4}", commands[(i - DATA_PAGES) * PAGE_SIZE + j]);
                     for b in word.chars() {
                         print!("{: >3} ", b);
                     }
@@ -122,7 +122,7 @@ impl MemoryManagementUnit {
 
     fn parse_virtual_memory(&self, ptr: u32) -> Vec::<String> {
         let mut commands: Vec<String> = Vec::new();
-        let mut i = 0;
+        let mut i = DATA_PAGES;
         let mut j = 0;
         let mut halt_received = false;
         while !halt_received {
@@ -143,7 +143,7 @@ impl MemoryManagementUnit {
         if "HALT" == word {
             return (commands, true);
         }
-        if word.chars().last().unwrap() == 'R' {
+        if word.chars().last().unwrap() == 'R' || ["LOAD", "STORE"].contains(&word.as_str()) {
             let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().unwrap();
             commands.push(word.clone());
             *j += 1;
@@ -239,37 +239,79 @@ impl MemoryManagementUnit {
         let mut mem_cmd_page = self.get_first_empty_user_mem_page().unwrap();
         let mut disk_cmd_page =
             self.hard_drive[disk_cmd_list_page as usize * PAGE_SIZE].as_u32();
-        let mut page_number = 0;
         self.write_to_user_mem_page(
             mem_cmd_list_page as usize,
-            page_number,
+            0,
             Word::from_u32(mem_cmd_page)
         );
-        let mut counter = 0;
+        let mut mem_counter = 0;
+        let mut disk_counter = 0;
+
+        // Load data segment into first page
         loop {
-            let cmd = self.hard_drive[(disk_cmd_page as usize * PAGE_SIZE) + counter];
-            println!("{} {}", counter, cmd.as_u32());
-            if counter == PAGE_SIZE {
-                page_number += 1;
-                counter = 0;
-                mem_cmd_page = self.get_first_empty_user_mem_page().unwrap();
+            let cmd = self.hard_drive[(disk_cmd_page as usize * PAGE_SIZE) + disk_counter % PAGE_SIZE];
+            println!("{} {}", mem_counter, cmd.as_u32());
+            if cmd.as_text().is_ok() {
+                if cmd.as_text().unwrap() == "#COD" {
+                    disk_counter += 1;
+                    mem_counter = PAGE_SIZE * DATA_PAGES;
+                    break;
+                }
+                if cmd.as_text().unwrap() == "#DAT" {
+                    disk_counter += 1;
+                    continue;
+                }
+            }
+            if disk_counter % PAGE_SIZE == 0 {
                 disk_cmd_page = self.hard_drive[
-                    (disk_cmd_list_page as usize * PAGE_SIZE) + page_number
-                ]
+                    (disk_cmd_list_page as usize * PAGE_SIZE) + disk_counter
+                    ]
                     .as_u32();
+            }
+            if mem_counter % PAGE_SIZE == 0 && mem_counter > 0 {
+                if mem_counter / PAGE_SIZE == DATA_PAGES {
+                    break;
+                }
+                mem_cmd_page = self.get_first_empty_user_mem_page().unwrap();
                 self.write_to_user_mem_page(
                     mem_cmd_list_page as usize,
-                    page_number,
+                    mem_counter / PAGE_SIZE,
+                    Word::from_u32(mem_cmd_page)
+                );
+            }            
+            self.write_to_user_mem_page(mem_cmd_page as usize, mem_counter % PAGE_SIZE, cmd);
+            mem_counter += 1;
+            disk_counter += 1;
+        }
+
+        // Load code segment into other pages
+        loop {
+            if disk_counter % PAGE_SIZE == 0 {
+                disk_cmd_page = self.hard_drive[
+                    (disk_cmd_list_page as usize * PAGE_SIZE) + disk_counter / PAGE_SIZE
+                    ]
+                    .as_u32();
+            }
+            let cmd = self.hard_drive[(disk_cmd_page as usize * PAGE_SIZE) + disk_counter % PAGE_SIZE];
+            println!("{} {}", mem_counter, cmd.as_u32());
+            
+            if mem_counter % PAGE_SIZE == 0 {
+                mem_cmd_page = self.get_first_empty_user_mem_page().unwrap();
+                self.write_to_user_mem_page(
+                    mem_cmd_list_page as usize,
+                    mem_counter / PAGE_SIZE,
                     Word::from_u32(mem_cmd_page)
                 );
             }
-            self.write_to_user_mem_page(mem_cmd_page as usize, counter, cmd);
+
+            self.write_to_user_mem_page(mem_cmd_page as usize, mem_counter % PAGE_SIZE, cmd);
             if cmd.as_text().is_ok() {
                 if cmd.as_text().unwrap() == "HALT" {
                     break;
                 }
             }
-            counter += 1;
+            disk_counter += 1;
+            mem_counter += 1;
         }
         Some(mem_cmd_list_page)
     }
@@ -362,5 +404,16 @@ impl MemoryManagementUnit {
         }
         let word = self.user_memory[(page_addr as usize * PAGE_SIZE) + word_i];
         word
+    }
+
+    pub fn store_word(&mut self, ptr: u32, value: u32) -> u32 {
+        let page_addr = self.user_memory[ptr as usize * PAGE_SIZE].as_u32();
+        for i in 0..PAGE_SIZE {
+            if self.user_memory[(page_addr as usize * PAGE_SIZE) + i].as_u32() == 0 {
+                self.user_memory[(page_addr as usize * PAGE_SIZE) + i].set_value(value);
+                return i as u32;
+            }
+        }
+        panic!();
     }
 }

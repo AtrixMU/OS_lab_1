@@ -83,10 +83,10 @@ impl RMProcessor {
     }
 
     pub fn get_command(&mut self) -> Word {
-        let w = self.mmu.get_word(self.ptr, self.ip);
+        let w = self.mmu.get_word(self.ptr, self.ip + (DATA_PAGES * PAGE_SIZE) as u32);
         self.ip += 1;
         println!("From page {} ip {} received {}",
-            (self.ip as usize - 1) / PAGE_SIZE,
+            (self.ip as usize - 1) / PAGE_SIZE + DATA_PAGES,
             self.ip as usize - 1,
             w.as_u32()
         );
@@ -301,7 +301,7 @@ impl RMProcessor{
             "GETS" => self.process_gets(),
             "MOVR" => self.process_movr(),
             "MOVN" => self.process_movn(),
-          //"LOAD" => self.process_load(),
+            "LOAD" => self.process_load(),
           //"STOR" => self.process_stor(),
           //"OPEN" => self.process_open(),
           //"READ" => self.process_read(),
@@ -977,6 +977,70 @@ impl RMProcessor {
             }
         }
     }
+
+    pub fn process_load(&mut self) {
+        let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
+        let cmd_2: String = self.get_command().as_text().expect("Failed to get text");
+        let c_1 = cmd_1.as_str();
+        let c_2 = cmd_2.as_str();
+        let adr: u32;
+        match c_2 {
+            "REGA" => adr = self.ax,
+            "REGB" => adr = self.bx,
+            "REGC" => adr = self.cx,
+            "REGD" => adr = self.dx,
+            _ => { 
+                println!("Register not found: {}", c_2);
+                self.pi = 4;
+                return;
+            }
+        }
+        let w = self.mmu.get_word(self.ptr, adr).as_u32();
+        match c_1 {
+            "REGA" => self.ax = w,
+            "REGB" => self.bx = w,
+            "REGC" => self.cx = w,
+            "REGD" => self.dx = w,
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
+        }
+    }
+
+    pub fn process_stor(&mut self) {
+        let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
+        let cmd_2: String = self.get_command().as_text().expect("Failed to get text");
+        let c_1 = cmd_1.as_str();
+        let c_2 = cmd_2.as_str();
+        let val: u32;
+        match c_1 {
+            "REGA" => val = self.ax,
+            "REGB" => val = self.bx,
+            "REGC" => val = self.cx,
+            "REGD" => val = self.dx,
+            _ => { 
+                println!("Register not found: {}", c_1);
+                self.pi = 4;
+                return;
+            }
+        }
+        let w = self.mmu.store_word(self.ptr, val);
+        match c_2 {
+            "REGA" => self.ax = w,
+            "REGB" => self.bx = w,
+            "REGC" => self.cx = w,
+            "REGD" => self.dx = w,
+            _ => { 
+                println!("Register not found: {}", c_2);
+                self.pi = 4;
+                return;
+            }
+        }
+    }
+
+
 
     pub fn process_halt(&mut self, vm: usize) {
         self.vm_list.get_mut(&vm).expect("Failed to get mut vm").stop();
