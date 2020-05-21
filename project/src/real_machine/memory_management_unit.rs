@@ -29,7 +29,7 @@ impl MemoryManagementUnit {
         mmu
     }
     pub fn mount_drive(&mut self) {
-        let mut file = File::open("./disk/disk.dsk").unwrap();
+        let mut file = File::open("./disk/disk.dsk").expect("Error opening hard drive");
         let mut buffer = [0u8; 4];
     
         loop {
@@ -69,7 +69,7 @@ impl MemoryManagementUnit {
                 for b in 0..4 {
                     print!("{:3} ", self.user_memory[i * PAGE_SIZE + j]
                         .get_byte(b)
-                        .unwrap()
+                        .expect("Error getting byte in print_user_memory")
                     );
                 }
                 print!("|");
@@ -86,7 +86,7 @@ impl MemoryManagementUnit {
                 for b in 0..4 {
                     print!("{:3} ", self.get_word(ptr, (i * PAGE_SIZE + j) as u32)
                         .get_byte(b)
-                        .unwrap()
+                        .expect("Failed getting byte @ print_virtual_memory")
                     );
                 }
                 print!("|");
@@ -112,7 +112,7 @@ impl MemoryManagementUnit {
                     for b in 0..4 {
                         print!("{:3} ", self.get_word(ptr, (i * PAGE_SIZE + j) as u32)
                             .get_byte(b)
-                            .unwrap()
+                            .expect("Failed getting byte @ print_virtual_memory_words")
                         );
                     }
                 }
@@ -139,7 +139,7 @@ impl MemoryManagementUnit {
 
     fn parse_cmd(&self, ptr: u32, i: &mut usize, j: &mut usize) -> (Vec<String>, bool) {
         let mut commands: Vec<String> = Vec::new();
-        let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().unwrap();
+        let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().expect("error parsing cmd");
         commands.push(word.clone());
         *j += 1;
         *i += *j / PAGE_SIZE;
@@ -147,21 +147,21 @@ impl MemoryManagementUnit {
         if "HALT" == word {
             return (commands, true);
         }
-        if word.chars().last().unwrap() == 'R' || ["LOAD", "STORE"].contains(&word.as_str()) {
-            let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().unwrap();
+        if word.chars().last().expect("error parsing cmd") == 'R' || ["LOAD", "STOR"].contains(&word.as_str()) {
+            let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().expect("error parsing cmd");
             commands.push(word.clone());
             *j += 1;
             *i += *j / PAGE_SIZE;
             *j %= PAGE_SIZE;
-            let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().unwrap();
+            let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().expect("error parsing cmd");
             commands.push(word.clone());
             *j += 1;
             *i += *j / PAGE_SIZE;
             *j %= PAGE_SIZE;
             return (commands, false);
         }
-        if word.chars().last().unwrap() == 'V' || word == "LOOP" || word == "MOVN" {
-            let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().unwrap();
+        if word.chars().last().expect("error parsing cmd") == 'V' || word == "LOOP" || word == "MOVN" {
+            let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().expect("error parsing cmd");
             commands.push(word.clone());
             *j += 1;
             *i += *j / PAGE_SIZE;
@@ -180,12 +180,12 @@ impl MemoryManagementUnit {
             *i += *j / PAGE_SIZE;
             *j %= PAGE_SIZE;
             return (commands, false);
-        }
-        let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().unwrap();
-        commands.push(word.clone());
-        *j += 1;
-        *i += *j / PAGE_SIZE;
-        *j %= PAGE_SIZE;
+        } 
+        // let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().expect("error parsing cmd");
+        // commands.push(word.clone());
+        // *j += 1;
+        // *i += *j / PAGE_SIZE;
+        // *j %= PAGE_SIZE;
         (commands, false)
     }
 
@@ -201,7 +201,7 @@ impl MemoryManagementUnit {
                     if w.is_empty() {
                         break;
                     }
-                    file_name.push_str(&w.as_text().unwrap());
+                    file_name.push_str(&w.as_text().expect("Error parsing file name"));
                 }
                 cursor += FILE_NAME_LEN;
                 file_name.push('.');
@@ -231,16 +231,16 @@ impl MemoryManagementUnit {
         if disk_cmd_list_page_result.is_none() {
             return None;
         }
-        let disk_cmd_list_page = disk_cmd_list_page_result.unwrap();
+        let disk_cmd_list_page = disk_cmd_list_page_result.expect("Failed to get disk_cmd_list_page_result");
         println!("code address: {}", disk_cmd_list_page);
 
         let mem_cmd_list_page_res = self.get_first_empty_user_mem_page();
         if mem_cmd_list_page_res.is_none() {
             return None;
         }
-        let mem_cmd_list_page = mem_cmd_list_page_res.unwrap();
+        let mem_cmd_list_page = mem_cmd_list_page_res.expect("Failed to get mem_cmd_list_page_res");
         self.user_memory[mem_cmd_list_page as usize * PAGE_SIZE].set_value(1);
-        let mut mem_cmd_page = self.get_first_empty_user_mem_page().unwrap();
+        let mut mem_cmd_page = self.get_first_empty_user_mem_page().expect("failed to get_first_empty_user_mem_page");
         let mut disk_cmd_page =
             self.hard_drive[disk_cmd_list_page as usize * PAGE_SIZE].as_u32();
         self.write_to_user_mem_page(
@@ -256,12 +256,12 @@ impl MemoryManagementUnit {
             let cmd = self.hard_drive[(disk_cmd_page as usize * PAGE_SIZE) + disk_counter % PAGE_SIZE];
             println!("{} {}", mem_counter, cmd.as_u32());
             if cmd.as_text().is_ok() {
-                if cmd.as_text().unwrap() == "#COD" {
+                if cmd.as_text().expect("Unexpected") == "#COD" {
                     disk_counter += 1;
                     mem_counter = PAGE_SIZE * DATA_PAGES;
                     break;
                 }
-                if cmd.as_text().unwrap() == "#DAT" {
+                if cmd.as_text().expect("Unexpected") == "#DAT" {
                     disk_counter += 1;
                     continue;
                 }
@@ -276,7 +276,7 @@ impl MemoryManagementUnit {
                 if mem_counter / PAGE_SIZE == DATA_PAGES {
                     break;
                 }
-                mem_cmd_page = self.get_first_empty_user_mem_page().unwrap();
+                mem_cmd_page = self.get_first_empty_user_mem_page().expect("Failed get_first_empty_user_mem_page");
                 self.write_to_user_mem_page(
                     mem_cmd_list_page as usize,
                     mem_counter / PAGE_SIZE,
@@ -300,7 +300,7 @@ impl MemoryManagementUnit {
             println!("{} {}", mem_counter, cmd.as_u32());
             
             if mem_counter % PAGE_SIZE == 0 {
-                mem_cmd_page = self.get_first_empty_user_mem_page().unwrap();
+                mem_cmd_page = self.get_first_empty_user_mem_page().expect("Failed get_first_empty_user_mem_page");
                 self.write_to_user_mem_page(
                     mem_cmd_list_page as usize,
                     mem_counter / PAGE_SIZE,
@@ -446,7 +446,7 @@ impl MemoryManagementUnit {
     pub fn open_file(&mut self, file_name: String, process_id: usize) -> (u32, u8) {
         let found_file = self.find_file_start(file_name.clone());
         if found_file.is_some() {
-            let file_ptr = found_file.unwrap();
+            let file_ptr = found_file.expect("but file was found :(");
             if self.open_files.contains_key(&file_ptr) {
                 return (0, INT_FILE_OCCUPIED);
             }
@@ -466,6 +466,7 @@ impl MemoryManagementUnit {
         let mut header = 0;
         for i in (page_start * PAGE_SIZE)..(DRIVE_SIZE * PAGE_SIZE) {
             if self.hard_drive[i].is_empty() {
+                self.hard_drive[i].set_value(1);
                 file_ptr = i;
                 header = self.get_first_empty_disk_page();
                 self.hard_drive[i].set_value(header);
@@ -481,19 +482,23 @@ impl MemoryManagementUnit {
         self.hard_drive[block_list as usize].set_value(1);
         let block_1 = self.get_first_empty_disk_page();
         self.hard_drive[block_list as usize].set_value(block_1);
+        println!("Created file {} {} {}", header, block_list, block_1);
         file_ptr as u32
     }
 
     fn get_first_empty_disk_page(&mut self) -> u32 {
         let mut i = DRIVE_SIZE * PAGE_SIZE;
+        while self.hard_drive.len() < i {
+            self.hard_drive.push(Word::new());
+        }
         loop {
-            if i > self.hard_drive.len() {
+            if i >= self.hard_drive.len() {
                 for _ in 0..PAGE_SIZE {
                     self.hard_drive.push(Word::new());
                 }
                 return i as u32;
             }
-            if self.user_memory[i].is_empty() {
+            if self.hard_drive[i].is_empty() {
                 return i as u32;
             }
             i += PAGE_SIZE;
@@ -508,7 +513,7 @@ impl MemoryManagementUnit {
             return (0, INT_FILE_OCCUPIED);
         }
         let header = self.hard_drive[file_ptr as usize].as_u32();
-        let blocks = self.hard_drive[header as usize].as_u32();
+        let blocks = self.hard_drive[header as usize + PAGE_SIZE - 1].as_u32();
         let page = cursor as usize / PAGE_SIZE;
         for i in 0..(page + 1) {
             if self.hard_drive[blocks as usize + i].is_empty() {
@@ -516,7 +521,7 @@ impl MemoryManagementUnit {
             }
         }
         let block_page = self.hard_drive[blocks as usize + page].as_u32();
-        return (self.hard_drive[block_page as usize + cursor as usize % PAGE_SIZE].as_u32(), 0);
+        return (self.hard_drive[block_page as usize + (cursor as usize % PAGE_SIZE)].as_u32(), 0);
     }
 
     pub fn write_to_file(&mut self, file_ptr: u32, cursor: u32, value: u32, process_id: usize) -> u8 {
@@ -527,7 +532,7 @@ impl MemoryManagementUnit {
             return INT_FILE_OCCUPIED;
         }
         let header = self.hard_drive[file_ptr as usize].as_u32();
-        let blocks = self.hard_drive[header as usize].as_u32();
+        let blocks = self.hard_drive[header as usize + PAGE_SIZE - 1].as_u32();
         let page = cursor as usize / PAGE_SIZE;
         for i in 0..page {
             if self.hard_drive[blocks as usize + i].is_empty() {
@@ -539,7 +544,7 @@ impl MemoryManagementUnit {
             self.hard_drive[blocks as usize + page].set_value(new_page);
         }
         let block_page = self.hard_drive[blocks as usize + page].as_u32();
-        self.hard_drive[block_page as usize + cursor as usize % PAGE_SIZE].set_value(value);
+        self.hard_drive[block_page as usize + (cursor as usize % PAGE_SIZE)].set_value(value);
         0
     }
 
@@ -556,10 +561,11 @@ impl MemoryManagementUnit {
     }
 
     pub fn delete_file(&mut self, file_ptr: u32, process_id: usize) -> u8 {
-        if !self.open_files.contains_key(&file_ptr) 
-            || self.open_files[&file_ptr] != process_id 
-        {
+        if !self.open_files.contains_key(&file_ptr) {
             return INT_BAD_FILE;
+        }
+        if self.open_files[&file_ptr] != process_id  {
+            return INT_FILE_OCCUPIED;
         }
         let header = self.hard_drive[file_ptr as usize].as_u32();
         let blocks = self.hard_drive[header as usize].as_u32();
@@ -576,7 +582,7 @@ impl MemoryManagementUnit {
             self.hard_drive[header as usize + i].set_value(0);
         }
         self.hard_drive[file_ptr as usize].set_value(0);
-
+        self.open_files.remove(&file_ptr);
         0
     }
 }

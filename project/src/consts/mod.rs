@@ -27,11 +27,7 @@ pub const PERMISSIONS_LEN: usize = 1;
 
 pub const DATA_PAGES: usize = 1;
 
-pub const INT_PRTN: u8 = 1;
-pub const INT_PRTS: u8 = 2;
-pub const INT_GETN: u8 = 3;
-pub const INT_GETS: u8 = 4;
-pub const INT_HALT: u8 = 0xFF;
+
 // Errors
 pub const INT_DIV_ZERO: u8 = 1;
 pub const INT_OF: u8 = 2;
@@ -43,8 +39,14 @@ pub const INT_FILE_OCCUPIED: u8 = 7;
 pub const INT_OOM: u8 = 8;
 
 // Interrupts
+pub const INT_PRTN: u8 = 1;
+pub const INT_PRTS: u8 = 2;
+pub const INT_GETN: u8 = 3;
+pub const INT_GETS: u8 = 4;
 pub const INT_OPEN: u8 = 5;
 pub const INT_READ: u8 = 6;
 pub const INT_WRITE: u8 = 7;
 pub const INT_CLOSE: u8 = 8;
 pub const INT_DEL: u8 = 9;
+
+pub const INT_HALT: u8 = 0xFF;

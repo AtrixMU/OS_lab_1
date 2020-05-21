@@ -316,7 +316,7 @@ impl RMProcessor {
             println!("Program {}> Trapped.", vm);
             println!("Program {} registers:", vm);
             self.print_registers();
-            self.vm_list[&vm].print();
+            // self.vm_list[&vm].print();
     
             println!("Press U to print User memory.\nPress V to print Virtual memory\nPress Esc to continue.");
             loop {
@@ -395,11 +395,7 @@ impl RMProcessor {
           //"ACTV" => self.process_actv(),
           //"GTST" => self.process_gtst(),
           //"STST" => self.process_stst(),
-            "HALT" =>  {
-                self.process_halt();
-                return;
-            }
-          
+            "HALT" => self.process_halt(),
             _ => { 
                 println!("NOT IMPLEMENTED");
                 self.pi = 4;
@@ -1010,7 +1006,7 @@ impl RMProcessor {
         val = self.ax;
         let word = Word::from_u32(val);
         let print: String = word.as_text().expect("Failed to get text");
-        println!("{}",print)
+        println!("{}", print)
     }
 
 
