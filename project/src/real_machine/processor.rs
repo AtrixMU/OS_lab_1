@@ -939,10 +939,7 @@ impl RMProcessor {
             }
         }
     }
-<<<<<<< HEAD
 /*
-=======
->>>>>>> ea4b9ca6ae300244905d9ecb057e9758feb89a5f
     pub fn process_prtn(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let c_1 = cmd_1.as_str();
@@ -1019,7 +1016,6 @@ impl RMProcessor {
         let print: String = word.as_text().expect("Failed to get text");
         println!("{}",print)
     }
-<<<<<<< HEAD
     */
     pub fn process_prts(&mut self) {
         self.ki = INT_PRTS;
@@ -1035,8 +1031,6 @@ impl RMProcessor {
 
 
     /*
-=======
->>>>>>> ea4b9ca6ae300244905d9ecb057e9758feb89a5f
     pub fn process_gets(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let c_1 = cmd_1.as_str();
@@ -1055,7 +1049,6 @@ impl RMProcessor {
             }
         }
     }
-<<<<<<< HEAD
     */
 
     pub fn process_gets(&mut self) {
@@ -1070,9 +1063,6 @@ impl RMProcessor {
     }
 
     pub fn process_movr(&mut self) {
-=======
-    fn process_movr(&mut self) {
->>>>>>> ea4b9ca6ae300244905d9ecb057e9758feb89a5f
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let cmd_2: String = self.get_command().as_text().expect("Failed to get text");
         let c_2 = cmd_2.as_str();
