@@ -26,3 +26,9 @@ pub const LAST_MODIFIED_LEN: usize = 2;
 pub const PERMISSIONS_LEN: usize = 1;
 
 pub const DATA_PAGES: usize = 1;
+
+pub const INT_PRTN: u8 = 1;
+pub const INT_PRTS: u8 = 2;
+pub const INT_GETN: u8 = 3;
+pub const INT_GETS: u8 = 4;
+pub const INT_HALT: u8 = 0xFF;
