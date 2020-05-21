@@ -488,7 +488,7 @@ impl MemoryManagementUnit {
         let mut i = DRIVE_SIZE * PAGE_SIZE;
         loop {
             if i > self.hard_drive.len() {
-                for j in 0..PAGE_SIZE {
+                for _ in 0..PAGE_SIZE {
                     self.hard_drive.push(Word::new());
                 }
                 return i as u32;
