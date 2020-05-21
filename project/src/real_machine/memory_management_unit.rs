@@ -140,7 +140,6 @@ impl MemoryManagementUnit {
         *j += 1;
         *i += *j / PAGE_SIZE;
         *j %= PAGE_SIZE;
-        println!("{}", word);
         if "HALT" == word {
             return (commands, true);
         }

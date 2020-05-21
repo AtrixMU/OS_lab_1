@@ -67,7 +67,7 @@ impl RMProcessor {
             .load_program(program_name)
             .expect("Failed to load program");
         self.mmu.print_user_memory();
-        self.mmu.print_virtual_memory(ptr);
+        self.mmu.print_virtual_memory_words(ptr);
         let key = self.find_lowest_free_pid();
         self.vm_list.insert(key, VMProcessor::new(ptr));
         self.vm_list.get_mut(&key).expect("Error getting mut vm").set_trap_flag(debug_mode);
@@ -236,12 +236,12 @@ impl RMProcessor{
         println!("sr: {:#032b}", self.sr);
     }
     fn process_trap_flag(&mut self, vm: usize) -> Result<()> {
-        println!("Program {}> Trapped.", vm);
-        println!("Program {} registers:", vm);
-        self.print_registers();
-
-        println!("Press U to print User memory.\nPress V to print Virtual memory\nPress Esc to continue.");
         if self.get_trap_flag() {
+            println!("Program {}> Trapped.", vm);
+            println!("Program {} registers:", vm);
+            self.print_registers();
+    
+            println!("Press U to print User memory.\nPress V to print Virtual memory\nPress Esc to continue.");
             loop {
                 // Wait up to 1s for another event
                 if poll(Duration::from_millis(1_000))? {
