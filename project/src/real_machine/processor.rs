@@ -73,12 +73,73 @@ impl RMProcessor {
         self.vm_list.get_mut(&key).expect("Error getting mut vm").set_trap_flag(debug_mode);
         self.ti = 100;
     }
+    fn process_program_interrupts(&mut self, process_id: usize) {
+        if self.ki == 0 {
+            return;
+        }
+        if self.ti > 1 {
+            self.ti -= 1;
+        }
+        else {
+            self.ti = 0;
+        }
+        match self.ki {
+            INT_OPEN => {
+                let file_name = Word::from_u32(self.ax).as_text();
+                if file_name.is_err() {
+                    self.pi = INT_BAD_CMD;
+                }
+                else {
+                    let (result, err_code) = self.mmu.open_file(file_name.unwrap(), process_id);
+                    if err_code > 0 {
+                        self.pi = err_code;
+                    }
+                    else {
+                        self.ax = result;
+                    }
+                }
+            },
+            INT_READ => {
+                let (result, err_code) = self.mmu.read_from_file(self.ax, self.bx, process_id);
+                if err_code > 0 {
+                    self.pi = err_code;
+                }
+                else {
+                    self.dx = result;
+                }
+            },
+            INT_WRITE => {
+                let err_code = self.mmu.write_to_file(self.ax, self.bx, self.dx, process_id);
+                if err_code > 0 {
+                    self.pi = err_code;
+                }
+            },
+            INT_CLOSE => {
+                let err_code = self.mmu.close_file(self.ax, process_id);
+                if err_code > 0 {
+                    self.pi = err_code;
+                }
+            },
+            INT_DEL => {
+                let err_code = self.mmu.delete_file(self.ax, process_id);
+                if err_code > 0 {
+                    self.pi = err_code;
+                }
+            },
+            _ => self.pi = INT_BAD_CMD,
+        }
+    }
     pub fn process_interrupt(&mut self, process_id: usize) {
         match self.pi {
             0 => return,
-            1 => println!("PROCESS {}> ERROR: DIVISION BY ZERO", process_id),
-            4 => println!("PROCESS {}> ERROR: INVALID COMMAND", process_id),
-            _ => println!("PROCESS {}> ERROR: oopsie", process_id),
+            INT_DIV_ZERO        => println!("PROCESS {}> ERROR: DIVISION BY ZERO", process_id),
+            INT_BAD_ADR         => println!("PROCESS {}> ERROR: BAD ADDRESS", process_id),
+            INT_BAD_CMD         => println!("PROCESS {}> ERROR: INVALID COMMAND", process_id),
+            INT_BAD_FILE        => println!("PROCESS {}> ERROR: BAD FILE", process_id),
+            INT_BAD_DEVICE      => println!("PROCESS {}> ERROR: BAD DEVICE", process_id),
+            INT_FILE_OCCUPIED   => println!("PROCESS {}> ERROR: FILE OCCUPIED", process_id),
+            INT_OOM             => println!("PROCESS {}> ERROR: OUT OF MEMORY", process_id),
+            _                   => println!("PROCESS {}> ERROR: oopsie", process_id),
         }
         self.process_halt(process_id);
     }
@@ -208,7 +269,7 @@ impl Processor for RMProcessor {
     }
 }
 
-impl RMProcessor{
+impl RMProcessor {
     pub fn run_instruction_loop(&mut self) {
         loop {
             let mut key_list: Vec<usize> = Vec::new();
@@ -319,12 +380,12 @@ impl RMProcessor{
             "MOVR" => self.process_movr(),
             "MOVN" => self.process_movn(),
             "LOAD" => self.process_load(),
-          //"STOR" => self.process_stor(),
-          //"OPEN" => self.process_open(),
-          //"READ" => self.process_read(),
-          //"WRT" => self.process_wrt(),
-          //"CLS" => self.process_cls(),
-          //"DEL" => self.process_del(),
+            "STOR" => self.process_stor(),
+            "OPEN" => self.process_open(),
+            "READ" => self.process_read(),
+             "WRT" => self.process_wrt(),
+             "CLS" => self.process_cls(),
+             "DEL" => self.process_del(),
           //"ACTV" => self.process_actv(),
           //"GTST" => self.process_gtst(),
           //"STST" => self.process_stst(),
@@ -338,6 +399,7 @@ impl RMProcessor{
                 self.pi = 4;
             }
         }
+        self.process_program_interrupts(vm);
         self.process_interrupt(vm);
         self.set_vars(vm);
     }
@@ -417,7 +479,6 @@ impl RMProcessor {
             }
         }
     }
-
     pub fn process_addv(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let val: u32 = self.get_command().as_u32();
@@ -435,7 +496,6 @@ impl RMProcessor {
         }
         
     }
-
     pub fn process_subr(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let cmd_2: String = self.get_command().as_text().expect("Failed to get text");
@@ -466,7 +526,6 @@ impl RMProcessor {
         }
 
     }
-
     pub fn process_subv(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let val: u32 = self.get_command().as_u32();
@@ -483,7 +542,6 @@ impl RMProcessor {
             }
         }
     }
-
     pub fn process_mulr(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let cmd_2: String = self.get_command().as_text().expect("Failed to get text");
@@ -513,7 +571,6 @@ impl RMProcessor {
             }
         }
     }
-
     pub fn process_mulv(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let val: u32 = self.get_command().as_u32();
@@ -530,7 +587,6 @@ impl RMProcessor {
             }
         }
     }
-
     pub fn process_divr(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let cmd_2: String = self.get_command().as_text().expect("Failed to get text");
@@ -565,7 +621,6 @@ impl RMProcessor {
             self.pi = 1;
         }
     }
-
     pub fn process_divv(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let val: u32 = self.get_command().as_u32();
@@ -587,7 +642,6 @@ impl RMProcessor {
             self.pi = 1;
         }
     }
-
     pub fn process_andr(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let cmd_2: String = self.get_command().as_text().expect("Failed to get text");
@@ -617,7 +671,6 @@ impl RMProcessor {
             }
         }
     }
-
     pub fn process_andv(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let val: u32 = self.get_command().as_u32();
@@ -634,7 +687,6 @@ impl RMProcessor {
             }
         }
     }
-
     pub fn process_orr(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let cmd_2: String = self.get_command().as_text().expect("Failed to get text");
@@ -664,7 +716,6 @@ impl RMProcessor {
             }
         }
     }
-
     pub fn process_orv(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let val: u32 = self.get_command().as_u32();
@@ -681,7 +732,6 @@ impl RMProcessor {
             }
         }
     }
-
     pub fn process_xorr(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let cmd_2: String = self.get_command().as_text().expect("Failed to get text");
@@ -711,7 +761,6 @@ impl RMProcessor {
             }
         }
     }
-
     pub fn process_xorv(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let val: u32 = self.get_command().as_u32();
@@ -728,7 +777,6 @@ impl RMProcessor {
             }
         }
     }
-
     pub fn process_cmpr(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let cmd_2: String = self.get_command().as_text().expect("Failed to get text");
@@ -779,7 +827,6 @@ impl RMProcessor {
 
         }
     }
-    
     pub fn process_cmpv(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let val_2: u32 = self.get_command().as_u32();
@@ -816,26 +863,22 @@ impl RMProcessor {
             }
         }
     }
-
     pub fn process_jump(&mut self) {
         let val: u32 = self.get_command().as_u32();
         self.ip = val;
     }
-
     pub fn process_jpeq(&mut self) {
         if self.get_zero_flag() {
             let val: u32 = self.get_command().as_u32();
             self.ip = val;
         }
     }
-
     pub fn process_jpof(&mut self) {
         if self.get_overflow_flag() {
             let val: u32 = self.get_command().as_u32();
             self.ip = val;
         }
     }
-
     pub fn process_jpge(&mut self) {
         if !self.get_sign_flag() {
             let val: u32 = self.get_command().as_u32();
@@ -860,7 +903,6 @@ impl RMProcessor {
             self.ip = val;
         }
     }
-
     pub fn process_loop(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let val: u32 = self.get_command().as_u32();
@@ -897,7 +939,10 @@ impl RMProcessor {
             }
         }
     }
+<<<<<<< HEAD
 /*
+=======
+>>>>>>> ea4b9ca6ae300244905d9ecb057e9758feb89a5f
     pub fn process_prtn(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let c_1 = cmd_1.as_str();
@@ -974,6 +1019,7 @@ impl RMProcessor {
         let print: String = word.as_text().expect("Failed to get text");
         println!("{}",print)
     }
+<<<<<<< HEAD
     */
     pub fn process_prts(&mut self) {
         self.ki = INT_PRTS;
@@ -989,6 +1035,8 @@ impl RMProcessor {
 
 
     /*
+=======
+>>>>>>> ea4b9ca6ae300244905d9ecb057e9758feb89a5f
     pub fn process_gets(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let c_1 = cmd_1.as_str();
@@ -1007,6 +1055,7 @@ impl RMProcessor {
             }
         }
     }
+<<<<<<< HEAD
     */
 
     pub fn process_gets(&mut self) {
@@ -1021,6 +1070,9 @@ impl RMProcessor {
     }
 
     pub fn process_movr(&mut self) {
+=======
+    fn process_movr(&mut self) {
+>>>>>>> ea4b9ca6ae300244905d9ecb057e9758feb89a5f
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let cmd_2: String = self.get_command().as_text().expect("Failed to get text");
         let c_2 = cmd_2.as_str();
@@ -1049,8 +1101,7 @@ impl RMProcessor {
             }
         }
     }
-
-    pub fn process_movn(&mut self) {
+    fn process_movn(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let val: u32 = self.get_command().as_u32();
         let c_1 = cmd_1.as_str();
@@ -1066,8 +1117,7 @@ impl RMProcessor {
             }
         }
     }
-
-    pub fn process_load(&mut self) {
+    fn process_load(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let cmd_2: String = self.get_command().as_text().expect("Failed to get text");
         let c_1 = cmd_1.as_str();
@@ -1097,8 +1147,7 @@ impl RMProcessor {
             }
         }
     }
-
-    pub fn process_stor(&mut self) {
+    fn process_stor(&mut self) {
         let cmd_1: String = self.get_command().as_text().expect("Failed to get text");
         let cmd_2: String = self.get_command().as_text().expect("Failed to get text");
         let c_1 = cmd_1.as_str();
@@ -1127,6 +1176,21 @@ impl RMProcessor {
                 return;
             }
         }
+    }
+    fn process_open(&mut self) {
+        self.ki = INT_OPEN;
+    }
+    fn process_read(&mut self) {
+        self.ki = INT_READ;
+    }
+    fn process_wrt(&mut self) {
+        self.ki = INT_WRITE;
+    }
+    fn process_cls(&mut self) {
+        self.ki = INT_CLOSE;
+    }
+    fn process_del(&mut self) {
+        self.ki = INT_DEL;
     }
 
 
