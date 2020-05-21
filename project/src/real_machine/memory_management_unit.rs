@@ -474,8 +474,7 @@ impl MemoryManagementUnit {
     }
 
     fn get_first_empty_disk_page(&mut self) -> u32 {
-        let mut rng = rand::thread_rng();
-        let i = DRIVE_SIZE * PAGE_SIZE;
+        let mut i = DRIVE_SIZE * PAGE_SIZE;
         loop {
             if i > self.hard_drive.len() {
                 for j in 0..PAGE_SIZE {
