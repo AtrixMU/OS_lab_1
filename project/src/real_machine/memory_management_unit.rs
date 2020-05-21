@@ -5,12 +5,15 @@ use crate::types::Word;
 use crate::consts::*;
 use std::fs::File;
 use std::io::Read;
+use std::collections::HashMap;
+
 
 #[derive(Debug)]
 pub struct MemoryManagementUnit {
     kernel_memory: Vec<Word>,
     user_memory: Vec<Word>,
     hard_drive: Vec<Word>,
+    open_files: HashMap<u32, usize>
 }
 
 impl MemoryManagementUnit {
@@ -19,6 +22,7 @@ impl MemoryManagementUnit {
             kernel_memory: [Word::new(); KERNEL_MEMORY_SIZE].to_vec(),
             user_memory: [Word::new(); USER_MEMORY_SIZE].to_vec(),
             hard_drive: Vec::new(),
+            open_files: HashMap::new(),
         };
         mmu.mount_drive();
         mmu.print_hard_drive();
@@ -439,13 +443,20 @@ impl MemoryManagementUnit {
         panic!();
     }
 
-    pub fn open_file(&mut self, file_name: String) -> u32 {
+    pub fn open_file(&mut self, file_name: String, process_id: usize) -> (u32, u8) {
         let found_file = self.find_file_start(file_name.clone());
         if found_file.is_some() {
-            return found_file.unwrap();
+            let file_ptr = found_file.unwrap();
+            if self.open_files.contains_key(&file_ptr) {
+                return (0, INT_FILE_OCCUPIED);
+            }
+            self.open_files.insert(file_ptr, process_id);
+            return (file_ptr, 0);
         }
         else {
-            return self.create_file(file_name);
+            let file_ptr = self.create_file(file_name);
+            self.open_files.insert(file_ptr, process_id);
+            return (file_ptr, 0);
         }
     }
 
@@ -487,5 +498,85 @@ impl MemoryManagementUnit {
             }
             i += PAGE_SIZE;
         }
+    }
+
+    pub fn read_from_file(&self, file_ptr: u32, cursor: u32, process_id: usize) -> (u32, u8) {
+        if !self.open_files.contains_key(&file_ptr) {
+            return (0, INT_BAD_FILE);
+        }
+        if self.open_files[&file_ptr] != process_id  {
+            return (0, INT_FILE_OCCUPIED);
+        }
+        let header = self.hard_drive[file_ptr as usize].as_u32();
+        let blocks = self.hard_drive[header as usize].as_u32();
+        let page = cursor as usize / PAGE_SIZE;
+        for i in 0..(page + 1) {
+            if self.hard_drive[blocks as usize + i].is_empty() {
+                return (0, INT_BAD_ADR);
+            }
+        }
+        let block_page = self.hard_drive[blocks as usize + page].as_u32();
+        return (self.hard_drive[block_page as usize + cursor as usize % PAGE_SIZE].as_u32(), 0);
+    }
+
+    pub fn write_to_file(&mut self, file_ptr: u32, cursor: u32, value: u32, process_id: usize) -> u8 {
+        if !self.open_files.contains_key(&file_ptr) {
+            return INT_BAD_FILE;
+        }
+        if self.open_files[&file_ptr] != process_id  {
+            return INT_FILE_OCCUPIED;
+        }
+        let header = self.hard_drive[file_ptr as usize].as_u32();
+        let blocks = self.hard_drive[header as usize].as_u32();
+        let page = cursor as usize / PAGE_SIZE;
+        for i in 0..page {
+            if self.hard_drive[blocks as usize + i].is_empty() {
+                return INT_BAD_ADR;
+            }
+        }
+        if self.hard_drive[blocks as usize + page].is_empty() {
+            let new_page = self.get_first_empty_disk_page();
+            self.hard_drive[blocks as usize + page].set_value(new_page);
+        }
+        let block_page = self.hard_drive[blocks as usize + page].as_u32();
+        self.hard_drive[block_page as usize + cursor as usize % PAGE_SIZE].set_value(value);
+        0
+    }
+
+    pub fn close_file(&mut self, file_ptr: u32, process_id: usize) -> u8 {
+        if !self.open_files.contains_key(&file_ptr) {
+            return INT_BAD_FILE;
+        }
+        if self.open_files[&file_ptr] != process_id  {
+            return INT_FILE_OCCUPIED;
+        }
+        self.open_files.remove(&file_ptr);
+
+        0
+    }
+
+    pub fn delete_file(&mut self, file_ptr: u32, process_id: usize) -> u8 {
+        if !self.open_files.contains_key(&file_ptr) 
+            || self.open_files[&file_ptr] != process_id 
+        {
+            return INT_BAD_FILE;
+        }
+        let header = self.hard_drive[file_ptr as usize].as_u32();
+        let blocks = self.hard_drive[header as usize].as_u32();
+        for i in 0..PAGE_SIZE {
+            if !self.hard_drive[blocks as usize + i].is_empty() {
+                let block_page = self.hard_drive[blocks as usize + i].as_u32();
+                for i in 0..PAGE_SIZE {
+                    self.hard_drive[block_page as usize + i].set_value(0);
+                }
+                self.hard_drive[blocks as usize + i].set_value(0);
+            }
+        }
+        for i in 0..PAGE_SIZE {
+            self.hard_drive[header as usize + i].set_value(0);
+        }
+        self.hard_drive[file_ptr as usize].set_value(0);
+
+        0
     }
 }
