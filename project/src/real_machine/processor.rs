@@ -316,7 +316,7 @@ impl RMProcessor {
             println!("Program {}> Trapped.", vm);
             println!("Program {} registers:", vm);
             self.print_registers();
-            // self.vm_list[&vm].print();
+            self.vm_list[&vm].print();
     
             println!("Press U to print User memory.\nPress V to print Virtual memory\nPress Esc to continue.");
             loop {
