@@ -1,20 +1,12 @@
 use crate::virtual_machine::processor::VMProcessor;
-use crate::consts::*;
+use super::resource::Resource;
 
-pub struct Process {
-    id: usize,
-    parent_id: usize,
-    vm: VMProcessor,
-    state: usize,
-}
-
-impl Process {
-    pub fn new(id: usize, parent_id: usize, ptr: u32) -> Process {
-        Process {
-            id: id,
-            parent_id: parent_id,
-            vm: VMProcessor::new(ptr),
-            state: P_READY,
-        }
-    }
+pub trait Process {
+    fn get_state(&self) -> usize;
+    fn set_state(&mut self, state: usize);
+    fn get_vm(&self) -> VMProcessor;
+    fn set_vm(&mut self, vm: VMProcessor);
+    fn add_resource(&mut self, res: Resource);
+    fn take_resource(&mut self, res: usize) -> Resource;
+    fn progress(&mut self) -> Option<(usize, bool)>;
 }
