@@ -3,3 +3,4 @@ pub mod virtual_machine;
 pub mod traits;
 pub mod consts;
 pub mod types;
+pub mod operating_system;
