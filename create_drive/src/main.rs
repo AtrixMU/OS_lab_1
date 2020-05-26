@@ -1,10 +1,9 @@
 //Matas Udris, Robertas Povedionok 4 grupe, informatika
 use std::io;
-use std::fs::{self, DirEntry};
+use std::fs::{self};
 use std::path::Path;
 use serde::Deserialize;
 
-use std::error::Error;
 use std::fs::File;
 use std::io::{Write, BufReader, BufRead};
 use create_drive::types::Word;
@@ -223,7 +222,7 @@ fn print_disk(disk: &Vec<Word>) {
 fn write_to_file(disk: &Vec<Word>, file: &mut File) {
     for i in 0..(disk.len() / PAGE_SIZE) {
         for j in 0..PAGE_SIZE {
-                file.write(&disk[i*PAGE_SIZE + j].get_data());
+                file.write(&disk[i*PAGE_SIZE + j].get_data()).unwrap();
         }
     }
 }
@@ -231,7 +230,7 @@ fn write_to_file(disk: &Vec<Word>, file: &mut File) {
 fn main() {
     println!("Hello, world!");
     let mut mem = [Word::new(); DRIVE_SIZE * PAGE_SIZE].to_vec();
-    let mut entries = fs::read_dir("./files/metadata/").unwrap()
+    let entries = fs::read_dir("./files/metadata/").unwrap()
         .map(|res| res.map(|e| e.path()))
         .collect::<Result<Vec<_>, io::Error>>().unwrap();
     init_disk_info(&mut mem, "DISK".to_string(), 64);

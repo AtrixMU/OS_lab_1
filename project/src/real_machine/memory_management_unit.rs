@@ -5,12 +5,15 @@ use crate::types::Word;
 use crate::consts::*;
 use std::fs::File;
 use std::io::Read;
+use std::collections::HashMap;
+
 
 #[derive(Debug)]
 pub struct MemoryManagementUnit {
     kernel_memory: Vec<Word>,
     user_memory: Vec<Word>,
     hard_drive: Vec<Word>,
+    open_files: HashMap<u32, usize>
 }
 
 impl MemoryManagementUnit {
@@ -19,13 +22,14 @@ impl MemoryManagementUnit {
             kernel_memory: [Word::new(); KERNEL_MEMORY_SIZE].to_vec(),
             user_memory: [Word::new(); USER_MEMORY_SIZE].to_vec(),
             hard_drive: Vec::new(),
+            open_files: HashMap::new(),
         };
         mmu.mount_drive();
         mmu.print_hard_drive();
         mmu
     }
     pub fn mount_drive(&mut self) {
-        let mut file = File::open("./disk/disk.dsk").unwrap();
+        let mut file = File::open("./disk/disk.dsk").expect("Error opening hard drive");
         let mut buffer = [0u8; 4];
     
         loop {
@@ -63,9 +67,9 @@ impl MemoryManagementUnit {
             print!("PAGE {:2}: ", i);
             for j in 0..PAGE_SIZE {
                 for b in 0..4 {
-                    print!("{:3} ", self.user_memory[i * PAGE_SIZE + j]
+                    print!("{:3}", self.user_memory[i * PAGE_SIZE + j]
                         .get_byte(b)
-                        .unwrap()
+                        .expect("Error getting byte in print_user_memory")
                     );
                 }
                 print!("|");
@@ -82,7 +86,7 @@ impl MemoryManagementUnit {
                 for b in 0..4 {
                     print!("{:3} ", self.get_word(ptr, (i * PAGE_SIZE + j) as u32)
                         .get_byte(b)
-                        .unwrap()
+                        .expect("Failed getting byte @ print_virtual_memory")
                     );
                 }
                 print!("|");
@@ -91,6 +95,100 @@ impl MemoryManagementUnit {
         }
         println!("{:-<281}", "");
     }
+
+    pub fn print_virtual_memory_words(&self, ptr: u32) {
+        let commands = self.parse_virtual_memory(ptr);
+        println!("{:-<130}{:-<150}", "", "VIRTUAL MEMORY");
+        for i in 0..PAGE_SIZE {
+            print!("PAGE {:2}: ", i);
+            for j in 0..PAGE_SIZE {
+                if i >= DATA_PAGES && (i - DATA_PAGES) * PAGE_SIZE + j < commands.len() {
+                    let word = format!("{: >4}", commands[(i - DATA_PAGES) * PAGE_SIZE + j]);
+                    for b in word.chars() {
+                        print!("{: >3}", b);
+                    }
+                }
+                else {
+                    for b in 0..4 {
+                        print!("{:3}", self.get_word(ptr, (i * PAGE_SIZE + j) as u32)
+                            .get_byte(b)
+                            .expect("Failed getting byte @ print_virtual_memory_words")
+                        );
+                    }
+                }
+                print!("|");
+            }
+            println!("");
+        }
+        println!("{:-<281}", "");
+
+    }
+
+    fn parse_virtual_memory(&self, ptr: u32) -> Vec::<String> {
+        let mut commands: Vec<String> = Vec::new();
+        let mut i = DATA_PAGES;
+        let mut j = 0;
+        let mut halt_received = false;
+        while !halt_received {
+            let (mut cmds, was_halt) = self.parse_cmd(ptr, &mut i, &mut j);
+            halt_received = was_halt;
+            commands.append(&mut cmds);
+        }
+        commands
+    }
+
+    fn parse_cmd(&self, ptr: u32, i: &mut usize, j: &mut usize) -> (Vec<String>, bool) {
+        let mut commands: Vec<String> = Vec::new();
+        let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().expect("error parsing cmd");
+        commands.push(word.clone());
+        *j += 1;
+        *i += *j / PAGE_SIZE;
+        *j %= PAGE_SIZE;
+        if "HALT" == word {
+            return (commands, true);
+        }
+        if word.chars().last().expect("error parsing cmd") == 'R' || ["LOAD", "STOR"].contains(&word.as_str()) {
+            let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().expect("error parsing cmd");
+            commands.push(word.clone());
+            *j += 1;
+            *i += *j / PAGE_SIZE;
+            *j %= PAGE_SIZE;
+            let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().expect("error parsing cmd");
+            commands.push(word.clone());
+            *j += 1;
+            *i += *j / PAGE_SIZE;
+            *j %= PAGE_SIZE;
+            return (commands, false);
+        }
+        if word.chars().last().expect("error parsing cmd") == 'V' || word == "LOOP" || word == "MOVN" {
+            let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().expect("error parsing cmd");
+            commands.push(word.clone());
+            *j += 1;
+            *i += *j / PAGE_SIZE;
+            *j %= PAGE_SIZE;
+            let word = format!("{}", self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_u32());
+            commands.push(word.clone());
+            *j += 1;
+            *i += *j / PAGE_SIZE;
+            *j %= PAGE_SIZE;
+            return (commands, false);
+        }
+        if ["JUMP", "JPEQ", "JPOF", "JPGE", "JPBE", "JMPG", "JMPB"].contains(&word.as_str()) {
+            let word = format!("{}", self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_u32());
+            commands.push(word.clone());
+            *j += 1;
+            *i += *j / PAGE_SIZE;
+            *j %= PAGE_SIZE;
+            return (commands, false);
+        } 
+        let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().expect("error parsing cmd");
+        commands.push(word.clone());
+        *j += 1;
+        *i += *j / PAGE_SIZE;
+        *j %= PAGE_SIZE;
+        (commands, false)
+    }
+
     pub fn list_programs(&self) {
         let page_start = 1;
         for i in (page_start * PAGE_SIZE)..(DRIVE_SIZE * PAGE_SIZE) {
@@ -103,7 +201,7 @@ impl MemoryManagementUnit {
                     if w.is_empty() {
                         break;
                     }
-                    file_name.push_str(&w.as_text().unwrap());
+                    file_name.push_str(&w.as_text().expect("Error parsing file name"));
                 }
                 cursor += FILE_NAME_LEN;
                 file_name.push('.');
@@ -133,49 +231,91 @@ impl MemoryManagementUnit {
         if disk_cmd_list_page_result.is_none() {
             return None;
         }
-        let disk_cmd_list_page = disk_cmd_list_page_result.unwrap();
+        let disk_cmd_list_page = disk_cmd_list_page_result.expect("Failed to get disk_cmd_list_page_result");
         println!("code address: {}", disk_cmd_list_page);
 
         let mem_cmd_list_page_res = self.get_first_empty_user_mem_page();
         if mem_cmd_list_page_res.is_none() {
             return None;
         }
-        let mem_cmd_list_page = mem_cmd_list_page_res.unwrap();
+        let mem_cmd_list_page = mem_cmd_list_page_res.expect("Failed to get mem_cmd_list_page_res");
         self.user_memory[mem_cmd_list_page as usize * PAGE_SIZE].set_value(1);
-        let mut mem_cmd_page = self.get_first_empty_user_mem_page().unwrap();
+        let mut mem_cmd_page = self.get_first_empty_user_mem_page().expect("failed to get_first_empty_user_mem_page");
         let mut disk_cmd_page =
             self.hard_drive[disk_cmd_list_page as usize * PAGE_SIZE].as_u32();
-        let mut page_number = 0;
         self.write_to_user_mem_page(
             mem_cmd_list_page as usize,
-            page_number,
+            0,
             Word::from_u32(mem_cmd_page)
         );
-        let mut counter = 0;
+        let mut mem_counter = 0;
+        let mut disk_counter = 0;
+
+        // Load data segment into first page
         loop {
-            let cmd = self.hard_drive[(disk_cmd_page as usize * PAGE_SIZE) + counter];
-            println!("{} {}", counter, cmd.as_u32());
-            if counter == PAGE_SIZE {
-                page_number += 1;
-                counter = 0;
-                mem_cmd_page = self.get_first_empty_user_mem_page().unwrap();
+            let cmd = self.hard_drive[(disk_cmd_page as usize * PAGE_SIZE) + disk_counter % PAGE_SIZE];
+            println!("{} {}", mem_counter, cmd.as_u32());
+            if cmd.as_text().is_ok() {
+                if cmd.as_text().expect("Unexpected") == "#COD" {
+                    disk_counter += 1;
+                    mem_counter = PAGE_SIZE * DATA_PAGES;
+                    break;
+                }
+                if cmd.as_text().expect("Unexpected") == "#DAT" {
+                    disk_counter += 1;
+                    continue;
+                }
+            }
+            if disk_counter % PAGE_SIZE == 0 {
                 disk_cmd_page = self.hard_drive[
-                    (disk_cmd_list_page as usize * PAGE_SIZE) + page_number
-                ]
+                    (disk_cmd_list_page as usize * PAGE_SIZE) + disk_counter
+                    ]
                     .as_u32();
+            }
+            if mem_counter % PAGE_SIZE == 0 && mem_counter > 0 {
+                if mem_counter / PAGE_SIZE == DATA_PAGES {
+                    break;
+                }
+                mem_cmd_page = self.get_first_empty_user_mem_page().expect("Failed get_first_empty_user_mem_page");
                 self.write_to_user_mem_page(
                     mem_cmd_list_page as usize,
-                    page_number,
+                    mem_counter / PAGE_SIZE,
+                    Word::from_u32(mem_cmd_page)
+                );
+            }            
+            self.write_to_user_mem_page(mem_cmd_page as usize, mem_counter % PAGE_SIZE, cmd);
+            mem_counter += 1;
+            disk_counter += 1;
+        }
+
+        // Load code segment into other pages
+        loop {
+            if disk_counter % PAGE_SIZE == 0 {
+                disk_cmd_page = self.hard_drive[
+                    (disk_cmd_list_page as usize * PAGE_SIZE) + disk_counter / PAGE_SIZE
+                    ]
+                    .as_u32();
+            }
+            let cmd = self.hard_drive[(disk_cmd_page as usize * PAGE_SIZE) + disk_counter % PAGE_SIZE];
+            println!("{} {}", mem_counter, cmd.as_u32());
+            
+            if mem_counter % PAGE_SIZE == 0 {
+                mem_cmd_page = self.get_first_empty_user_mem_page().expect("Failed get_first_empty_user_mem_page");
+                self.write_to_user_mem_page(
+                    mem_cmd_list_page as usize,
+                    mem_counter / PAGE_SIZE,
                     Word::from_u32(mem_cmd_page)
                 );
             }
-            self.write_to_user_mem_page(mem_cmd_page as usize, counter, cmd);
+
+            self.write_to_user_mem_page(mem_cmd_page as usize, mem_counter % PAGE_SIZE, cmd);
             if cmd.as_text().is_ok() {
                 if cmd.as_text().unwrap() == "HALT" {
                     break;
                 }
             }
-            counter += 1;
+            disk_counter += 1;
+            mem_counter += 1;
         }
         Some(mem_cmd_list_page)
     }
@@ -204,6 +344,28 @@ impl MemoryManagementUnit {
         }
         None
     }
+
+    fn find_file_start(&self, program_name: String) -> Option<u32> {
+        let page_start = 1;
+        for i in (page_start * PAGE_SIZE)..(DRIVE_SIZE * PAGE_SIZE) {
+            if !self.hard_drive[i].is_empty() {
+                let header_page = self.hard_drive[i].as_u32();
+                let mut file_name = String::new();
+                for j in 0..FILE_NAME_LEN {
+                    let w = self.hard_drive[(header_page as usize * PAGE_SIZE) + j];
+                    if w.is_empty() {
+                        break;
+                    }
+                    file_name.push_str(&w.as_text().unwrap());
+                }
+                if file_name == program_name {
+                    return Some(i as u32);
+                }
+            }
+        }
+        None
+    }
+
     pub fn unload_program(&mut self, ptr: u32) {
         let mem_cmd_list_page_index = ptr as usize * PAGE_SIZE;
         for i in 0..PAGE_SIZE {
@@ -268,5 +430,159 @@ impl MemoryManagementUnit {
         }
         let word = self.user_memory[(page_addr as usize * PAGE_SIZE) + word_i];
         word
+    }
+
+    pub fn store_word(&mut self, ptr: u32, value: u32) -> u32 {
+        let page_addr = self.user_memory[ptr as usize * PAGE_SIZE].as_u32();
+        for i in 0..PAGE_SIZE {
+            if self.user_memory[(page_addr as usize * PAGE_SIZE) + i].as_u32() == 0 {
+                self.user_memory[(page_addr as usize * PAGE_SIZE) + i].set_value(value);
+                return i as u32;
+            }
+        }
+        panic!();
+    }
+
+    pub fn open_file(&mut self, file_name: String, process_id: usize) -> (u32, u8) {
+        let found_file = self.find_file_start(file_name.clone());
+        if found_file.is_some() {
+            let file_ptr = found_file.expect("but file was found :(");
+            if self.open_files.contains_key(&file_ptr) {
+                return (0, INT_FILE_OCCUPIED);
+            }
+            self.open_files.insert(file_ptr, process_id);
+            return (file_ptr, 0);
+        }
+        else {
+            let file_ptr = self.create_file(file_name);
+            self.open_files.insert(file_ptr, process_id);
+            return (file_ptr, 0);
+        }
+    }
+
+    fn create_file(&mut self, file_name: String) -> u32 {
+        let page_start = 1;
+        let mut file_ptr = 0;
+        let mut header = 0;
+        for i in (page_start * PAGE_SIZE)..(DRIVE_SIZE * PAGE_SIZE) {
+            if self.hard_drive[i].is_empty() {
+                self.hard_drive[i].set_value(1);
+                file_ptr = i;
+                header = self.get_first_empty_disk_page();
+                self.hard_drive[i].set_value(header);
+                break;
+            }
+        }
+        if header == 0 || file_ptr == 0 {
+            panic!();
+        }
+        self.hard_drive[header as usize].set_text(file_name[0..4].to_string());
+        let block_list = self.get_first_empty_disk_page();
+        self.hard_drive[header as usize + PAGE_SIZE - 1].set_value(block_list);
+        self.hard_drive[block_list as usize].set_value(1);
+        let block_1 = self.get_first_empty_disk_page();
+        self.hard_drive[block_list as usize].set_value(block_1);
+        println!("Created file {} {} {}", header, block_list, block_1);
+        file_ptr as u32
+    }
+
+    fn get_first_empty_disk_page(&mut self) -> u32 {
+        let mut i = DRIVE_SIZE * PAGE_SIZE;
+        while self.hard_drive.len() < i {
+            self.hard_drive.push(Word::new());
+        }
+        loop {
+            if i >= self.hard_drive.len() {
+                for _ in 0..PAGE_SIZE {
+                    self.hard_drive.push(Word::new());
+                }
+                return i as u32;
+            }
+            if self.hard_drive[i].is_empty() {
+                return i as u32;
+            }
+            i += PAGE_SIZE;
+        }
+    }
+
+    pub fn read_from_file(&self, file_ptr: u32, cursor: u32, process_id: usize) -> (u32, u8) {
+        if !self.open_files.contains_key(&file_ptr) {
+            return (0, INT_BAD_FILE);
+        }
+        if self.open_files[&file_ptr] != process_id  {
+            return (0, INT_FILE_OCCUPIED);
+        }
+        let header = self.hard_drive[file_ptr as usize].as_u32();
+        let blocks = self.hard_drive[header as usize + PAGE_SIZE - 1].as_u32();
+        let page = cursor as usize / PAGE_SIZE;
+        for i in 0..(page + 1) {
+            if self.hard_drive[blocks as usize + i].is_empty() {
+                return (0, INT_BAD_ADR);
+            }
+        }
+        let block_page = self.hard_drive[blocks as usize + page].as_u32();
+        return (self.hard_drive[block_page as usize + (cursor as usize % PAGE_SIZE)].as_u32(), 0);
+    }
+
+    pub fn write_to_file(&mut self, file_ptr: u32, cursor: u32, value: u32, process_id: usize) -> u8 {
+        if !self.open_files.contains_key(&file_ptr) {
+            return INT_BAD_FILE;
+        }
+        if self.open_files[&file_ptr] != process_id  {
+            return INT_FILE_OCCUPIED;
+        }
+        let header = self.hard_drive[file_ptr as usize].as_u32();
+        let blocks = self.hard_drive[header as usize + PAGE_SIZE - 1].as_u32();
+        let page = cursor as usize / PAGE_SIZE;
+        for i in 0..page {
+            if self.hard_drive[blocks as usize + i].is_empty() {
+                return INT_BAD_ADR;
+            }
+        }
+        if self.hard_drive[blocks as usize + page].is_empty() {
+            let new_page = self.get_first_empty_disk_page();
+            self.hard_drive[blocks as usize + page].set_value(new_page);
+        }
+        let block_page = self.hard_drive[blocks as usize + page].as_u32();
+        self.hard_drive[block_page as usize + (cursor as usize % PAGE_SIZE)].set_value(value);
+        0
+    }
+
+    pub fn close_file(&mut self, file_ptr: u32, process_id: usize) -> u8 {
+        if !self.open_files.contains_key(&file_ptr) {
+            return INT_BAD_FILE;
+        }
+        if self.open_files[&file_ptr] != process_id  {
+            return INT_FILE_OCCUPIED;
+        }
+        self.open_files.remove(&file_ptr);
+
+        0
+    }
+
+    pub fn delete_file(&mut self, file_ptr: u32, process_id: usize) -> u8 {
+        if !self.open_files.contains_key(&file_ptr) {
+            return INT_BAD_FILE;
+        }
+        if self.open_files[&file_ptr] != process_id  {
+            return INT_FILE_OCCUPIED;
+        }
+        let header = self.hard_drive[file_ptr as usize].as_u32();
+        let blocks = self.hard_drive[header as usize].as_u32();
+        for i in 0..PAGE_SIZE {
+            if !self.hard_drive[blocks as usize + i].is_empty() {
+                let block_page = self.hard_drive[blocks as usize + i].as_u32();
+                for i in 0..PAGE_SIZE {
+                    self.hard_drive[block_page as usize + i].set_value(0);
+                }
+                self.hard_drive[blocks as usize + i].set_value(0);
+            }
+        }
+        for i in 0..PAGE_SIZE {
+            self.hard_drive[header as usize + i].set_value(0);
+        }
+        self.hard_drive[file_ptr as usize].set_value(0);
+        self.open_files.remove(&file_ptr);
+        0
     }
 }
