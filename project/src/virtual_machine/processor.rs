@@ -194,7 +194,7 @@ impl VMProcessor {
         println!("dx: {}", self.dx);
         println!("ip: {}", self.ic);
         println!("ptr: {}", self.ptr);
-        println!("sr: {:#032b}", self.sr);
+        println!("sr: {:016b}", self.sr);
     }
 }
 

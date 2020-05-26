@@ -83,6 +83,7 @@ impl RMProcessor {
         else {
             self.ti = 0;
         }
+        self.set_supervisor_flag(true);
         match self.ki {
             INT_OPEN => {
                 let file_name = Word::from_u32(self.ax).as_text();
@@ -133,6 +134,7 @@ impl RMProcessor {
             INT_HALT => self.interrupt_halt(process_id),
             _ => self.pi = INT_BAD_CMD,
         }
+        self.set_supervisor_flag(false);
     }
     pub fn process_interrupt(&mut self, process_id: usize) {
         match self.pi {
@@ -262,9 +264,17 @@ impl Processor for RMProcessor {
     fn set_supervisor_flag(&mut self, value: bool) {
         if value {
             self.sr |= SUPERVISOR_FLAG;
+            if self.get_trap_flag() {
+                println!("SUPERVISOR MODE ON");
+                println!("Current SR: {:016b}", self.sr);
+            }
         }
         else {
             self.sr &= !SUPERVISOR_FLAG;
+            if self.get_trap_flag() {
+                println!("SUPERVISOR MODE OFF");
+                println!("Current SR: {:016b}", self.sr);
+            }
         }
     }
 }
@@ -303,7 +313,7 @@ impl RMProcessor {
         println!("ti: {}", self.ti);
         println!("ip: {}", self.ip);
         println!("ptr: {}", self.ptr);
-        println!("sr: {:#032b}", self.sr);
+        println!("sr: {:016b}", self.sr);
     }
 
     fn process_trap_flag(&mut self, vm: usize) -> Result<()> {

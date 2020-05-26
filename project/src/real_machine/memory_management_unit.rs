@@ -67,7 +67,7 @@ impl MemoryManagementUnit {
             print!("PAGE {:2}: ", i);
             for j in 0..PAGE_SIZE {
                 for b in 0..4 {
-                    print!("{:3} ", self.user_memory[i * PAGE_SIZE + j]
+                    print!("{:3}", self.user_memory[i * PAGE_SIZE + j]
                         .get_byte(b)
                         .expect("Error getting byte in print_user_memory")
                     );
@@ -105,12 +105,12 @@ impl MemoryManagementUnit {
                 if i >= DATA_PAGES && (i - DATA_PAGES) * PAGE_SIZE + j < commands.len() {
                     let word = format!("{: >4}", commands[(i - DATA_PAGES) * PAGE_SIZE + j]);
                     for b in word.chars() {
-                        print!("{: >3} ", b);
+                        print!("{: >3}", b);
                     }
                 }
                 else {
                     for b in 0..4 {
-                        print!("{:3} ", self.get_word(ptr, (i * PAGE_SIZE + j) as u32)
+                        print!("{:3}", self.get_word(ptr, (i * PAGE_SIZE + j) as u32)
                             .get_byte(b)
                             .expect("Failed getting byte @ print_virtual_memory_words")
                         );
@@ -181,11 +181,11 @@ impl MemoryManagementUnit {
             *j %= PAGE_SIZE;
             return (commands, false);
         } 
-        // let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().expect("error parsing cmd");
-        // commands.push(word.clone());
-        // *j += 1;
-        // *i += *j / PAGE_SIZE;
-        // *j %= PAGE_SIZE;
+        let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().expect("error parsing cmd");
+        commands.push(word.clone());
+        *j += 1;
+        *i += *j / PAGE_SIZE;
+        *j %= PAGE_SIZE;
         (commands, false)
     }
 
