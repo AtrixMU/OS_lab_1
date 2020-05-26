@@ -1,12 +1,4 @@
 //Matas Udris, Robertas Povedionok 4 grupe, informatika
-#![warn(
-    clippy::all,
-    clippy::restriction,
-    clippy::pedantic,
-    clippy::nursery,
-    clippy::cargo,
-)]
-
 use std::error;
 use std::fmt;
 
@@ -117,6 +109,39 @@ impl Word {
         return [b0, b1, b2, b3]
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct Resource {
+    resource_type: String,
+    message: String,
+    recipient: Option<usize>
+}
+
+impl Resource {
+    pub fn new(resource_type: String) -> Resource {
+        Resource {
+            resource_type: resource_type,
+            message: String::new(),
+            recipient: None,
+        }
+    }
+    pub fn get_type(&self) -> String {
+        self.resource_type.clone()
+    }
+    pub fn get_msg(&self) -> String {
+        self.message.clone()
+    }
+    pub fn get_recipient(&self) -> Option<usize> {
+        self.recipient
+    }
+    pub fn set_msg(&mut self, msg: String) {
+        self.message = msg;
+    }
+    pub fn set_recipient(&mut self, rec: usize) {
+        self.recipient = Some(rec);
+    }
+}
+
 
 #[cfg(test)]
 mod processor_tests {
