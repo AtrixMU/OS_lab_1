@@ -7,7 +7,7 @@ use super::resource::Resource;
 pub struct StartStop {
     id: usize,
     parent_id: usize,
-    vm: VMProcessor,
+    vm: usize,
     state: usize,
     section: usize,
     resources: Vec<Resource>
@@ -15,11 +15,11 @@ pub struct StartStop {
 
 
 impl StartStop {
-    pub fn new(id: usize, parent_id: usize, ptr: u32) -> StartStop {
+    pub fn new(id: usize, parent_id: usize, vm: usize) -> StartStop {
         StartStop {
             id: id,
             parent_id: parent_id,
-            vm: VMProcessor::new(ptr),
+            vm: vm,
             state: P_READY,
             section: 0,
             resources: Vec::new(),
@@ -34,19 +34,19 @@ impl Process for StartStop {
     fn set_state(&mut self, state: usize) {
         self.state = state;
     }
-    fn get_vm(&self) -> VMProcessor {
+    fn get_vm(&self) -> usize {
         self.vm
     }
-    fn set_vm(&mut self, vm: VMProcessor) {
+    fn set_vm(&mut self, vm: usize) {
         self.vm = vm;
     }
     fn add_resource(&mut self, res: Resource) {
         self.resources.push(res);
     }
-    fn take_resource(&mut self, res_index: usize) -> Resource {
-        self.resources.remove(res_index)
+    fn take_resource(&mut self, resource_index: usize) -> Resource {
+        self.resources.remove(resource_index)
     }
-    fn progress(&mut self) -> Option<(usize, bool)> {
-        None
+    fn progress(&mut self) -> (Option<usize>, Option<Resource>) {
+        (None, None)
     }
 }

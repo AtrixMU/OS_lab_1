@@ -6,9 +6,9 @@ pub struct ResourceList {
     free: Vec<Resource>
 }
 
-impl ResourceList{
+impl ResourceList {
     pub fn new() -> ResourceList {
-        ResourceList{
+        ResourceList {
             free: Vec::new(),
         }
     }

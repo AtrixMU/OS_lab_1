@@ -2,8 +2,8 @@ use super::process::Process;
 use super::resource_list::ResourceList;
 
 pub struct Kernel {
-    process_list: Vec<Process>,
-    resources: ResourceList;
+    process_list: Vec<Box<dyn Process>>,
+    resources: ResourceList,
 
 }
 
