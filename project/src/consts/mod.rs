@@ -48,5 +48,21 @@ pub const INT_READ: u8 = 6;
 pub const INT_WRITE: u8 = 7;
 pub const INT_CLOSE: u8 = 8;
 pub const INT_DEL: u8 = 9;
-
 pub const INT_HALT: u8 = 0xFF;
+
+// Resource types
+pub const RES_S_MEM: usize = 0;             // Supervisor memory ("Supervizorinė atmintis")
+pub const RES_U_MEM: usize = 1;             // User memory ("Vartotojo atmintis")
+pub const RES_DISK: usize = 2;              // Disk ("Išorinė atmintis")
+pub const RES_CHNL: usize = 3;              // Channel device ("Kanalų įrenginys")
+pub const RES_TASK_IN_SUPER: usize = 4;     // Task is in supervisor memory ("Užduotis supervizorinėje atmintyje")
+pub const RES_FROM_USER_INT: usize = 5;     // From user interface ("Iš vartotojo sąsajos")
+pub const RES_FILE_PACK: usize = 6;         // File pack ("Failo paketas")
+pub const RES_USER_INPUT: usize = 7;        // User input ("Vartotojo įvedimas")
+pub const RES_LINE_IN_MEM: usize = 8;       // Line in memory ("Eilutė atmintyje")
+pub const RES_FROM_FILEWORK: usize = 9;     // From FileWork process ("Iš Filework")
+pub const RES_INTERRUPT: usize = 10;        // Interrupt ("Petraukimo resursas")
+pub const RES_FROM_INTERRUPT: usize = 11;   // From Interrupt process ("Iš interrupt")
+pub const RES_THEAD_SUPER: usize = 12;      // Task header in supervisor memory ("Užduoties antraštė supervizorinėje atmintyje")
+pub const RES_TPROG_SUPER: usize = 13;      // Task program in supervisor memory ("Užduoties programa supervizorinėje atmintyje")
+pub const RES_TASK_IN_USER: usize = 14;     // Task program in user memory ("Užduotis UMem")

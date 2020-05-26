@@ -112,21 +112,21 @@ impl Word {
 
 #[derive(Debug, Clone)]
 pub struct Resource {
-    resource_type: String,
+    resource_type: usize,
     message: String,
     recipient: Option<usize>
 }
 
 impl Resource {
-    pub fn new(resource_type: String) -> Resource {
+    pub fn new(resource_type: usize) -> Resource {
         Resource {
             resource_type: resource_type,
             message: String::new(),
             recipient: None,
         }
     }
-    pub fn get_type(&self) -> String {
-        self.resource_type.clone()
+    pub fn get_type(&self) -> usize {
+        self.resource_type
     }
     pub fn get_msg(&self) -> String {
         self.message.clone()
