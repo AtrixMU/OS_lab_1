@@ -9,7 +9,8 @@ pub struct PrintLine {
     vm: usize,
     state: usize,
     section: usize,
-    resources: Vec<Resource>
+    resources: Vec<Resource>,
+    priority: usize,
 }
 
 impl PrintLine {
@@ -21,6 +22,7 @@ impl PrintLine {
             state: P_READY,
             section: 0,
             resources: Vec::new(),
+            priority: 3
         }
     }
 }

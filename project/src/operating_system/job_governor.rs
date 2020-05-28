@@ -11,7 +11,8 @@ pub struct JobGovernor {
     vm: usize,
     state: usize,
     section: usize,
-    resources: Vec<Resource>
+    resources: Vec<Resource>,
+    priority: usize,
 }
 
 
@@ -24,6 +25,7 @@ impl JobGovernor {
             state: P_READY,
             section: 0,
             resources: Vec::new(),
+            priority: 2
         }
     }
 }

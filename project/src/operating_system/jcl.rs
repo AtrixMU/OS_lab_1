@@ -13,6 +13,7 @@ pub struct JCL {
     resources: Vec<Resource>,
     ptr: usize,
     code_index: usize,
+    priority: usize,
 }
 
 
@@ -27,6 +28,7 @@ impl JCL {
             resources: Vec::new(),
             ptr: 0,
             code_index: 0,
+            priority: 3
         }
     }
     fn get_msg(&self, resource_type: usize) -> String {

@@ -14,7 +14,8 @@ pub struct StartStop {
     vm: usize,
     state: usize,
     section: usize,
-    resources: Vec<Resource>
+    resources: Vec<Resource>,
+    priority: usize,
 }
 
 
@@ -27,6 +28,7 @@ impl StartStop {
             state: P_READY,
             section: 0,
             resources: Vec::new(),
+            priority: 3,
         }
     }
 }
