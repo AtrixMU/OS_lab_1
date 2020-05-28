@@ -147,9 +147,10 @@ impl Process for ReadFromDisk {
             P_BLOCKED => println!("P_BLOCKED"),
             P_READY_SUSP => println!("P_READY_SUSP"),
             P_BLOCKED_SUSP => println!("P_BLOCKED_SUSP"),
+            _ => println!("INVALID STATE"),
         }
         println!("Section: {}", self.section);
-        for resource in self.resources {
+        for resource in &self.resources {
             print!("Resource: ");
             match resource.get_type() {
                 RES_S_MEM => println!("RES_S_MEM"),

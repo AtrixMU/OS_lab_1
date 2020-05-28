@@ -2,8 +2,6 @@ use super::process::Process;
 use crate::real_machine::processor::RMProcessor;
 use crate::consts::*;
 use super::resource::Resource;
-use super::read_from_disk::ReadFromDisk;
-use super::jcl::JCL;
 use super::vm::VM;
 
 
@@ -108,7 +106,7 @@ impl Process for JobGovernor {
                 
                 // if INT  1, print("n"), if INT 2, print("s")
                 res.set_recipient(PID_PRINT_LINE);
-                return(None, Some(res), None), None;
+                return(None, Some(res), None, None);
             },
             6 => {//ivedimas (input)
                 todo!();
@@ -184,9 +182,10 @@ impl Process for JobGovernor {
             P_BLOCKED => println!("P_BLOCKED"),
             P_READY_SUSP => println!("P_READY_SUSP"),
             P_BLOCKED_SUSP => println!("P_BLOCKED_SUSP"),
+            _ => println!("INVALID STATE"),
         }
         println!("Section: {}", self.section);
-        for resource in self.resources {
+        for resource in &self.resources {
             print!("Resource: ");
             match resource.get_type() {
                 RES_S_MEM => println!("RES_S_MEM"),
