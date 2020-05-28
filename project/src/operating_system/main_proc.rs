@@ -11,7 +11,7 @@ pub struct MainProc {
     vm: usize,
     state: usize,
     section: usize,
-    resources: Vec<Resource>
+    resources: Vec<Resource>,
     vm_id: usize
 }
 
@@ -124,6 +124,13 @@ impl Process for MainProc {
             }
 
             _ => panic!(),
+        }
+    }
+
+    fn print(&self, rm:&mut RMProcessor) {
+        println!("Section: {}", self.section);
+        for resource in self.resources{
+            println!("Resource: {}", resource.get_type());
         }
     }
 }
