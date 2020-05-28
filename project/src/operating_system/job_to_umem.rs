@@ -74,62 +74,63 @@ impl Process for JobToUMem {
         }
         false
     }
-    fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>) {
+    fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>, Option<usize>) {
         match self.section {
             0 => {
                 if self.has_resource(RES_THEAD_SUPER) {
                     self.section += 1;
                     self.state = P_READY;
-                    return (None, None, None);
+                    return (None, None, None, None);
                 }
                 else {
                     self.state = P_BLOCKED;
-                    return (Some(RES_THEAD_SUPER), None, None);
+                    return (Some(RES_THEAD_SUPER), None, None, None);
                 }
             },
             1 => {
                 if self.has_resource(RES_TDAT_SUPER) {
                     self.section += 1;
                     self.state = P_READY;
-                    return (None, None, None);
+                    return (None, None, None, None);
                 }
                 else {
                     self.state = P_BLOCKED;
-                    return (Some(RES_TDAT_SUPER), None, None);
+                    return (Some(RES_TDAT_SUPER), None, None, None);
                 }
             },
             2 => {
                 if self.has_resource(RES_TPROG_SUPER) {
                     self.section += 1;
                     self.state = P_READY;
-                    return (None, None, None);
+                    return (None, None, None, None);
                 }
                 else {
                     self.state = P_BLOCKED;
-                    return (Some(RES_TPROG_SUPER), None, None);
+                    return (Some(RES_TPROG_SUPER), None, None, None);
                 }
             },
             3 => {
                 if self.has_resource(RES_U_MEM) {
                     self.section += 1;
                     self.state = P_READY;
-                    return (None, None, None);
+                    return (None, None, None, None);
                 }
                 else {
                     self.state = P_BLOCKED;
-                    return (Some(RES_U_MEM), None, None);
+                    return (Some(RES_U_MEM), None, None, None);
                 }
             },
             4 => {
-                let kernel_ptr = self.get_msg(RES_THEAD_SUPER);
-                
-                return (None, None, None);
+                let kernel_ptr = self.get_msg(RES_THEAD_SUPER).parse::<usize>().unwrap();
+                self.user_ptr = rm.mmu.smem_to_umem(kernel_ptr) as usize;
+                return (None, None, None, None);
             },
             5 => {
                 let mut res = Resource::new(RES_TASK_IN_USER);
-                res.set_recipient(PID_MAIN_PROC);
+                res.set_msg(format!("{} {}", self.user_ptr, RUN_DUR));
                 self.section = 0;
-                return(None, Some(res),None);
+                self.resources = Vec::new();
+                return(None, Some(res),None, None);
             },
 
             _ => panic!(),

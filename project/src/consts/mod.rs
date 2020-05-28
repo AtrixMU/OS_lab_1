@@ -27,6 +27,7 @@ pub const PERMISSIONS_LEN: usize = 1;
 
 pub const DATA_PAGES: usize = 1;
 
+pub const RUN_DUR: usize = 50;
 
 // Errors
 pub const INT_DIV_ZERO: u8 = 1;
