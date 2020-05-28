@@ -10,7 +10,7 @@ pub const DIRECTIONAL_FLAG: u16 = 0b0000_0100_0000_0000;
 pub const OVERFLOW_FLAG: u16 = 0b0000_1000_0000_0000;
 pub const SUPERVISOR_FLAG: u16 = 0b1000_0000_0000_0000;
 
-pub const KERNEL_MEMORY_SIZE: usize = 16 * 16;
+pub const KERNEL_MEMORY_SIZE: usize = 48 * 16;
 pub const USER_MEMORY_SIZE: usize = 48 * 16;
 
 pub const PAGE_SIZE: usize = 16;

@@ -3,6 +3,7 @@ use crate::virtual_machine::processor::VMProcessor;
 use crate::real_machine::processor::RMProcessor;
 use crate::consts::*;
 use super::resource::Resource;
+use super::read_from_disk::ReadFromDisk;
 
 
 pub struct StartStop {
@@ -44,11 +45,21 @@ impl Process for StartStop {
     fn add_resource(&mut self, res: Resource) {
         self.resources.push(res);
     }
-    fn take_resource(&mut self, resource_index: usize) -> Resource {
+    fn take_resource(&mut self, resource_type: usize) -> Resource {
+        let mut resource_index = self.resources.len();
+        for (index, res) in self.resources.iter().enumerate() {
+            if res.get_type() == resource_type {
+                resource_index = index;
+                break;
+            }
+        }
+        if resource_index == self.resources.len() {
+            panic!();
+        }
         self.resources.remove(resource_index)
     }
     fn has_resource(&self, resource_type: usize) -> bool {
-        for res in self.resources {
+        for res in &self.resources {
             if res.get_type() == resource_type {
                 return true;
             }
@@ -72,7 +83,7 @@ impl Process for StartStop {
             return (None, Some(res), None);
         }
         if self.section == 3 {
-            let new_proc = ReadFromDisk::new(1, self.parent_id, 0);
+            let new_proc = ReadFromDisk::new(0, self.parent_id, 0);
         }
         (None, None, None)
     }

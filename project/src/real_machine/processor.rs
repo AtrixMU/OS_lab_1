@@ -32,7 +32,7 @@ pub struct RMProcessor {
     ip: u32,
     ptr: u32,
     vm_list: HashMap<usize, VMProcessor>,
-    mmu: MemoryManagementUnit,
+    pub mmu: MemoryManagementUnit,
 }
 
 // Methods implemented for the real machine Processor struct
