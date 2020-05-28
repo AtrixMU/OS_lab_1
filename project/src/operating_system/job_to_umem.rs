@@ -110,13 +110,13 @@ impl Process for JobToUMem {
             },
             4 => {
                 todo!();
-            }
+            },
             5 => {
                 let mut res = Resource::new(RES_TASK_IN_USER);
                 res.set_recipient(PID_MAIN_PROC);
                 self.section = 0;
                 return(None, Some(res),None);
-            }
+            },
 
             _ => panic!(),
         }
