@@ -1,9 +1,7 @@
 use super::process::Process;
-use crate::virtual_machine::processor::VMProcessor;
 use crate::real_machine::processor::RMProcessor;
 use crate::consts::*;
 use super::resource::Resource;
-use super::resource_list::ResourceList;
 
 pub struct PrintLine {
     id: usize,
@@ -12,7 +10,6 @@ pub struct PrintLine {
     state: usize,
     section: usize,
     resources: Vec<Resource>
-    rm: RMProcessor
 }
 
 impl PrintLine {
@@ -44,7 +41,17 @@ impl Process for PrintLine {
     fn add_resource(&mut self, res: Resource) {
         self.resources.push(res);
     }
-    fn take_resource(&mut self, resource_index: usize) -> Resource {
+    fn take_resource(&mut self, resource_type: usize) -> Resource {
+        let mut resource_index = self.resources.len();
+        for (index, res) in self.resources.iter().enumerate() {
+            if res.get_type() == resource_type {
+                resource_index = index;
+                break;
+            }
+        }
+        if resource_index == self.resources.len() {
+            panic!();
+        }
         self.resources.remove(resource_index)
     }
     fn has_resource(&self, resource_type: usize) -> bool {
@@ -56,49 +63,58 @@ impl Process for PrintLine {
         false
     }
     fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>) {
-        if self.section == 0 {
-            if self.has_resource(RES_LINE_IN_MEM)
-            {
-                self.section += 1;
+        match self.section {
+            0 => {
+                if self.has_resource(RES_LINE_IN_MEM) {
+                    self.section += 1;
+                    self.state = P_READY;
+                    (None,None,None)
+                }
+                else {
+                    return (Some(RES_LINE_IN_MEM), None, None);
+                }
+            },
+            1 => {
+                if self.has_resource(RES_CHNL){
+                    self.section += 1;
+                    self.state = P_READY;
+                    (None,None,None)
+                }
+                    
+                else {
+                    return (Some(RES_CHNL), None, None);
+                }
                 
-            }
-                
-            else {
-                return (Some(RES_LINE_IN_MEM), None, None);
-            }
-        }
-        if self.section == 1 {
-            if self.has_resource(RES_CHNL)
-                self.section += 1;
-            else {
-                return (Some(RES_CHNL), None, None);
-            }
-        }
-        if self.section == 2 {
-
-        }
-        
+            },
+            2 => {
+                let source_id = 0;
+                let destination_id = 4;
+                self.print(rm);
+                (None,None,None)
+            },
+            3 => {
+                return(None,Some(self.take_resource(RES_CHNL)),None);
+            },
+            _ => panic!(),
+            
+        }     
     }
-
     fn print(&self, rm:&mut RMProcessor) {
-        let message = None;
-        for resource in self.resources
-        {
+        let message = String::new();
+        for resource in self.resources {
             if resource.get_type() == RES_LINE_IN_MEM {
-                message = self.resources.remove(resource).get_msg()
+                message = self.resources.remove(resource.get_type()).get_msg();
                 break;
-            }
-                
+            }      
         }
         let letter = message.chars().next();
-        let printing = message[1..];
-        match letter {
+        let printing =&message[1..];
+        match letter.unwrap() {
             'e' => println!("{}", printing),
             'n' => {rm.process_prtn()},
             's' => {rm.process_prts()},
              _ => println!("Invalid type for printing!") 
 
-            }
         }
     }
 }

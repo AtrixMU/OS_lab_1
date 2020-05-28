@@ -2,8 +2,7 @@ use super::process::Process;
 use crate::real_machine::processor::RMProcessor;
 use crate::consts::*;
 use super::resource::Resource;
-use super::read_from_disk::ReadFromDisk;
-use super::jcl::JCL;
+use super::job_governor::JobGovernor;
 
 
 pub struct MainProc {
@@ -12,7 +11,7 @@ pub struct MainProc {
     vm: usize,
     state: usize,
     section: usize,
-    resources: Vec<Resource>
+    resources: Vec<Resource>,
     vm_id: usize
 }
 
@@ -74,6 +73,7 @@ impl Process for MainProc {
                 if self.has_resource(RES_TASK_IN_USER) {
                     self.section += 1;
                     self.state = P_READY;
+                    (None,None,None)
                 }
                 else {
                     self.state = P_BLOCKED;
@@ -97,6 +97,13 @@ impl Process for MainProc {
             }
 
             _ => panic!(),
+        }
+    }
+
+    fn print(&self, rm:&mut RMProcessor) {
+        println!("Section: {}", self.section);
+        for resource in self.resources{
+            println!("Resource: {}", resource.get_type());
         }
     }
 }

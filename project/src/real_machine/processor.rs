@@ -1147,7 +1147,7 @@ impl RMProcessor {
         }  
     }
 */
-    fn process_prtn(&mut self) {
+    pub fn process_prtn(&mut self) {
         self.ki = INT_PRTN;
     }
 
@@ -1208,7 +1208,7 @@ impl RMProcessor {
         println!("{}",print)
     }
     */
-    fn process_prts(&mut self) {
+    pub fn process_prts(&mut self) {
         self.ki = INT_PRTS;
     }
 

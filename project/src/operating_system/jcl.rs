@@ -231,4 +231,10 @@ impl Process for JCL {
         }
         (None, None, None)
     }
+    fn print(&self, rm:&mut RMProcessor) {
+        println!("Section: {}", self.section);
+        for resource in self.resources{
+            println!("Resource: {}", resource.get_type());
+        }
+    }
 }
