@@ -2,36 +2,44 @@ use super::process::Process;
 use crate::real_machine::processor::RMProcessor;
 use crate::consts::*;
 use super::resource::Resource;
-use super::read_from_disk::ReadFromDisk;
-use super::jcl::JCL;
-use super::job_to_umem::JobToUMem;
-use super::main_proc::MainProc;
 
 
-pub struct StartStop {
+pub struct Interrupt {
     id: usize,
     parent_id: usize,
     vm: usize,
     state: usize,
     section: usize,
-    resources: Vec<Resource>
+    resources: Vec<Resource>,
+    msg: String,
+    dest: usize,
 }
 
 
-impl StartStop {
-    pub fn new(id: usize, parent_id: usize, vm: usize) -> StartStop {
-        StartStop {
+impl Interrupt {
+    pub fn new(id: usize, parent_id: usize, vm: usize) -> Interrupt {
+        Interrupt {
             id: id,
             parent_id: parent_id,
             vm: vm,
             state: P_READY,
             section: 0,
             resources: Vec::new(),
+            msg: String::new(),
+            dest: 0,
         }
+    }
+    fn get_msg(&self, resource_type: usize) -> String {
+        for res in &self.resources {
+            if res.get_type() == resource_type {
+                return res.get_msg();
+            }
+        }
+        panic!()
     }
 }
 
-impl Process for StartStop {
+impl Process for Interrupt {
     fn get_state(&self) -> usize {
         self.state
     }
@@ -68,48 +76,45 @@ impl Process for StartStop {
         }
         false
     }
-    fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>, Option<usize>) {
+    fn step(&mut self, _rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>, Option<usize>) {
         match self.section {
             0 => {
-                let res = Resource::new(RES_S_MEM);
-                self.section += 1;
-                return (None, Some(res), None, None);
+                if self.has_resource(RES_INTERRUPT) {
+                    self.section += 1;
+                    self.state = P_READY;
+                    return (None, None, None, None);
+                }
+                else {
+                    self.state = P_BLOCKED;
+                    return (Some(RES_INTERRUPT), None, None, None);
+                }
             },
             1 => {
-                let res = Resource::new(RES_U_MEM);
+                let int_msg = self.get_msg(RES_INTERRUPT);
+                let params: Vec<&str> = int_msg.split_whitespace().collect();
+                self.msg = params[0].to_string();
                 self.section += 1;
-                return (None, Some(res), None, None);
+                return (None, None, None, None);
             },
             2 => {
-                let res = Resource::new(RES_DISK);
+                let int_msg = self.get_msg(RES_INTERRUPT);
+                let params: Vec<&str> = int_msg.split_whitespace().collect();
+                self.dest = params[1].parse::<usize>().unwrap();
                 self.section += 1;
-                return (None, Some(res), None, None);
+                return (None, None, None, None);
             },
             3 => {
-                let new_proc = ReadFromDisk::new(PID_READ_FROM_DISK, self.id, 0);
-                self.section += 1;
-                return (None, None, Some(Box::new(new_proc)), None);
+                let mut res = Resource::new(RES_FROM_INTERRUPT);
+                res.set_msg(format!("{} {}", self.msg, self.dest));
+                self.resources = Vec::new();
+                self.section = 0;
+                return (None, Some(res), None, None);
             },
-            4 => {
-                let new_proc = JCL::new(PID_JCL, self.id, 0);
-                self.section += 1;
-                return (None, None, Some(Box::new(new_proc)), None);
-            },
-            5 => {
-                let new_proc = JobToUMem::new(PID_JOB_TO_UMEM, self.id, 0);
-                self.section += 1;
-                return (None, None, Some(Box::new(new_proc)), None);
-            },
-            6 => {
-                let new_proc = MainProc::new(PID_MAIN_PROC, self.id, 0);
-                self.section += 1;
-                return (None, None, Some(Box::new(new_proc)), None);
-            }
             _ => panic!(),
         }
     }
     fn print(&self, _rm: &RMProcessor) {
-        println!("Process: StartStop");
+        println!("Process: Interrupt");
         print!("Status: ");
         match self.state {
             P_READY => println!("P_READY"),

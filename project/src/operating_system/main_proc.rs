@@ -127,7 +127,7 @@ impl Process for MainProc {
         }
     }
 
-    fn print(&self, rm: &RMProcessor) {
+    fn print(&self, _rm: &RMProcessor) {
         println!("Process: MainProc");
         print!("Status: ");
         match self.state {
