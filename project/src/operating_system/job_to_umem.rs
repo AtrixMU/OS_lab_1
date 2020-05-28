@@ -132,7 +132,6 @@ impl Process for JobToUMem {
                 self.resources = Vec::new();
                 return(None, Some(res),None, None);
             },
-
             _ => panic!(),
         }
     }

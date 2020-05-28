@@ -7,3 +7,4 @@ pub mod read_from_disk;
 pub mod jcl;
 pub mod job_to_umem;
 pub mod main_proc;
+pub mod vm;
