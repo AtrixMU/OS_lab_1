@@ -87,3 +87,6 @@ pub const PID_READ_FROM_DISK: usize = 1;
 pub const PID_JCL: usize = 2;
 pub const PID_PRINT_LINE: usize = 3;
 pub const PID_JOB_TO_UMEM: usize = 4;
+pub const PID_MAIN_PROC: usize = 5;
+pub const PID_FILE_WORK: usize = 6;
+pub const PID_INTERRUPT: usize = 7;
