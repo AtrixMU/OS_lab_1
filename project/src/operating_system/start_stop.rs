@@ -5,6 +5,7 @@ use super::resource::Resource;
 use super::read_from_disk::ReadFromDisk;
 use super::jcl::JCL;
 use super::job_to_umem::JobToUMem;
+use super::main_proc::MainProc;
 
 
 pub struct StartStop {
@@ -96,6 +97,11 @@ impl Process for StartStop {
             },
             5 => {
                 let new_proc = JobToUMem::new(PID_JOB_TO_UMEM, self.id, 0);
+                self.section += 1;
+                return (None, None, Some(Box::new(new_proc)), None);
+            },
+            6 => {
+                let new_proc = MainProc::new(PID_MAIN_PROC, self.id, 0);
                 self.section += 1;
                 return (None, None, Some(Box::new(new_proc)), None);
             }

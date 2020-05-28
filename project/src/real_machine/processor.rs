@@ -7,6 +7,8 @@ use crate::consts::*;
 use crate::types::Word;
 use std::io::stdin;
 use std::collections::HashMap;
+use crate::operating_system::resource::Resource;
+
 
 
 use std::{
@@ -60,6 +62,20 @@ impl RMProcessor {
             i += 1;
         }
         i
+    }
+    pub fn work_until_interrupt(&mut self, vm: usize) -> Option<Resource> {
+        self.ti = RUN_DUR as u8;
+        let mut res_op: u8;
+
+        while self.ti > 0 && self.vm_list.contains_key(&vm) && !self.vm_list[&vm].is_finished() {
+            res_op = self.process_command(vm);
+            if res_op > 0 {
+                let mut res = Resource::new(RES_INTERRUPT);
+                res.set_msg(format!("{} {}", res_op, vm));
+                return Some(res);
+            }
+        }
+        None
     }
     pub fn add_program(&mut self, program_name: String, debug_mode: bool) {
         let ptr = self
@@ -343,7 +359,7 @@ impl RMProcessor {
         Ok(())
     }
 
-    fn process_command(&mut self, vm: usize) {
+    fn process_command(&mut self, vm: usize) -> u8 {
         if self.ti >= 2 {
             self.ti -= 2;
         }
@@ -406,9 +422,10 @@ impl RMProcessor {
                 self.pi = 4;
             }
         }
-        self.process_program_interrupts(vm);
+        // self.process_program_interrupts(vm);
         self.process_interrupt(vm);
         self.set_vars(vm);
+        return self.ki;
     }
 
     fn get_vars(&mut self, vm: usize) {
