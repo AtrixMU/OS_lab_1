@@ -82,7 +82,7 @@ impl Process for PrintLine {
 
     fn print(&self, rm:&mut RMProcessor) {
         let message = None;
-        for resoruce in self.resources
+        for resource in self.resources
         {
             if resource.get_type() == RES_LINE_IN_MEM {
                 message = self.resources.remove(resource).get_msg()
