@@ -8,3 +8,4 @@ pub mod jcl;
 pub mod job_to_umem;
 pub mod main_proc;
 pub mod vm;
+pub mod job_governor;
