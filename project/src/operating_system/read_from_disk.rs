@@ -5,7 +5,7 @@ use crate::consts::*;
 use super::resource::Resource;
 
 
-pub struct StartStop {
+pub struct ReadFromDisk {
     id: usize,
     parent_id: usize,
     vm: usize,
@@ -15,7 +15,7 @@ pub struct StartStop {
 }
 
 
-impl StartStop {
+impl ReadFromDisk {
     pub fn new(id: usize, parent_id: usize, vm: usize) -> StartStop {
         StartStop {
             id: id,
@@ -28,7 +28,7 @@ impl StartStop {
     }
 }
 
-impl Process for StartStop {
+impl Process for ReadFromDisk {
     fn get_state(&self) -> usize {
         self.state
     }
@@ -55,24 +55,25 @@ impl Process for StartStop {
         }
         false
     }
-    fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>) {
+    fn step(&mut self, rm: &RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>) {
         if self.section == 0 {
-            let res = Resource::new(RES_S_MEM);
-            self.section += 1;
-            return (None, Some(res), None);
+            if self.has_resource(RES_FROM_USER_INT) {
+                self.section += 1;
+            }
+            else {
+                return (Some(RES_FROM_USER_INT), None, None);
+            }
         }
         if self.section == 1 {
-            let res = Resource::new(RES_U_MEM);
-            self.section += 1;
-            return (None, Some(res), None);
+            if self.has_resource(RES_CHNL) {
+                self.section += 1;
+            }
+            else {
+                return (Some(RES_CHNL), None, None);
+            }
         }
         if self.section == 2 {
-            let res = Resource::new(RES_DISK);
-            self.section += 1;
-            return (None, Some(res), None);
-        }
-        if self.section == 3 {
-            let new_proc = ReadFromDisk::new(1, self.parent_id, 0);
+            
         }
         (None, None, None)
     }
