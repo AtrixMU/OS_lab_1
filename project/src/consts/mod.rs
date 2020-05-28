@@ -66,6 +66,7 @@ pub const RES_FROM_INTERRUPT: usize = 11;   // From Interrupt process ("Iš inte
 pub const RES_THEAD_SUPER: usize = 12;      // Task header in supervisor memory ("Užduoties antraštė supervizorinėje atmintyje")
 pub const RES_TPROG_SUPER: usize = 13;      // Task program in supervisor memory ("Užduoties programa supervizorinėje atmintyje")
 pub const RES_TASK_IN_USER: usize = 14;     // Task program in user memory ("Užduotis UMem")
+pub const RES_TDAT_SUPER: usize = 15;       // Task data in supervisors memory ("Uzduoties duomenys supervizorineje atmintyje")
 
 // Process states
 pub const P_READY: usize = 0;
