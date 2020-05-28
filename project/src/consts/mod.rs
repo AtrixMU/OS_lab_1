@@ -73,3 +73,9 @@ pub const P_RUNNING: usize = 1;
 pub const P_BLOCKED: usize = 2;
 pub const P_READY_SUSP: usize = 3;
 pub const P_BLOCKED_SUSP: usize = 4;
+
+// Channel consts
+pub const CH_USER_MEM: u8 = 0;
+pub const CH_SUPER_MEM: u8 = 1;
+pub const CH_DISK: u8 = 2;
+pub const CH_INPUT: u8 = 3;
