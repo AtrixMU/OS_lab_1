@@ -1,9 +1,9 @@
 use super::process::Process;
-use crate::virtual_machine::processor::VMProcessor;
 use crate::real_machine::processor::RMProcessor;
 use crate::consts::*;
 use super::resource::Resource;
 use super::read_from_disk::ReadFromDisk;
+use super::jcl::JCL;
 
 
 pub struct StartStop {
@@ -67,24 +67,33 @@ impl Process for StartStop {
         false
     }
     fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>) {
-        if self.section == 0 {
-            let res = Resource::new(RES_S_MEM);
-            self.section += 1;
-            return (None, Some(res), None);
+        match self.section {
+            0 => {
+                let res = Resource::new(RES_S_MEM);
+                self.section += 1;
+                return (None, Some(res), None);
+            },
+            1 => {
+                let res = Resource::new(RES_U_MEM);
+                self.section += 1;
+                return (None, Some(res), None);
+            },
+            2 => {
+                let res = Resource::new(RES_DISK);
+                self.section += 1;
+                return (None, Some(res), None);
+            },
+            3 => {
+                let new_proc = ReadFromDisk::new(PID_READ_FROM_DISK, self.id, 0);
+                self.section += 1;
+                return (None, None, Some(Box::new(new_proc)));
+            },
+            4 => {
+                let new_proc = JCL::new(PID_JCL, self.id, 0);
+                self.section += 1;
+                return (None, None, Some(Box::new(new_proc)));
+            }
+            _ => panic!(),
         }
-        if self.section == 1 {
-            let res = Resource::new(RES_U_MEM);
-            self.section += 1;
-            return (None, Some(res), None);
-        }
-        if self.section == 2 {
-            let res = Resource::new(RES_DISK);
-            self.section += 1;
-            return (None, Some(res), None);
-        }
-        if self.section == 3 {
-            let new_proc = ReadFromDisk::new(0, self.parent_id, 0);
-        }
-        (None, None, None)
     }
 }

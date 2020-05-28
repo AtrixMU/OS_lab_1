@@ -79,17 +79,21 @@ impl Process for ReadFromDisk {
         match self.section {
             0 => {
                 if self.has_resource(RES_FROM_USER_INT) {
+                    self.state = P_READY;
                     self.section += 1;
                 }
                 else {
+                    self.state = P_BLOCKED;
                     return (Some(RES_FROM_USER_INT), None, None);
                 }
             },
             1 => {
                 if self.has_resource(RES_CHNL) {
+                    self.state = P_READY;
                     self.section += 1;
                 }
                 else {
+                    self.state = P_BLOCKED;
                     return (Some(RES_CHNL), None, None);
                 }
             },
@@ -99,9 +103,11 @@ impl Process for ReadFromDisk {
             },
             3 => {
                 if self.has_resource(RES_S_MEM) {
+                    self.state = P_READY;
                     self.section += 1;
                 }
                 else {
+                    self.state = P_BLOCKED;
                     return (Some(RES_S_MEM), None, None);
                 }
             },

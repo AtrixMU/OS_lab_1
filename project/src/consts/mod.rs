@@ -80,7 +80,9 @@ pub const CH_SUPER_MEM: u8 = 1;
 pub const CH_DISK: u8 = 2;
 pub const CH_INPUT: u8 = 3;
 
+// System process ids
 pub const PID_STARTSTOP: usize = 0;
 pub const PID_READ_FROM_DISK: usize = 1;
 pub const PID_JCL: usize = 2;
 pub const PID_PRINT_LINE: usize = 3;
+pub const PID_JOB_TO_UMEM: usize = 4;
