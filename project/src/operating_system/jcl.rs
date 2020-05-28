@@ -143,7 +143,7 @@ impl Process for JCL {
                 self.section = 6;
             },
             6 => {
-                let res = Resource::new(RES_TDATA_SUPER);
+                let res = Resource::new(RES_TDAT_SUPER);
                 self.section = 8;
                 return (None, Some(res), None);
             },            
@@ -173,7 +173,7 @@ impl Process for JCL {
                     return (None, None, None);
                 }
                 if cmd.chars().last().expect("error parsing cmd") == 'R' || ["LOAD", "STOR"].contains(&cmd.as_str()) {
-                    for i in 0..2 {
+                    for _ in 0..2 {
                         let block_list = rm.mmu.kernel_memory[(self.ptr * PAGE_SIZE) + PAGE_SIZE - 1].as_u32() as usize;
                         let current_block = rm.mmu.kernel_memory[(block_list as usize * PAGE_SIZE) + self.code_index / PAGE_SIZE].as_u32() as usize;
                         if current_block == 0 {

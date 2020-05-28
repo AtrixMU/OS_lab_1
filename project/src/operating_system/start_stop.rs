@@ -4,6 +4,7 @@ use crate::consts::*;
 use super::resource::Resource;
 use super::read_from_disk::ReadFromDisk;
 use super::jcl::JCL;
+use super::job_to_umem::JobToUMem;
 
 
 pub struct StartStop {
@@ -90,6 +91,11 @@ impl Process for StartStop {
             },
             4 => {
                 let new_proc = JCL::new(PID_JCL, self.id, 0);
+                self.section += 1;
+                return (None, None, Some(Box::new(new_proc)));
+            },
+            5 => {
+                let new_proc = JobToUMem::new(PID_JOB_TO_UMEM, self.id, 0);
                 self.section += 1;
                 return (None, None, Some(Box::new(new_proc)));
             }

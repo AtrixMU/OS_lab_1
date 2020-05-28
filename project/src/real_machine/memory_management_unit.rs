@@ -628,4 +628,72 @@ impl MemoryManagementUnit {
         }
         ptr
     }
+    pub fn smem_to_umem(&mut self, kernel_ptr: usize) -> u32 {
+        let ptr = self.get_first_empty_user_mem_page().unwrap();
+        self.user_memory[ptr as usize * PAGE_SIZE].set_value(1);
+
+        let block_list = self.kernel_memory[(kernel_ptr * PAGE_SIZE) + PAGE_SIZE - 1].as_u32() as usize;
+        let mut current_block = self.kernel_memory[block_list as usize * PAGE_SIZE].as_u32() as usize;
+
+        let mut umem_counter = 0;
+        let mut smem_counter = 0;
+        let mut umem_cmd_page = 0;
+
+        // Load data segment into first page
+        loop {
+            let cmd = self.kernel_memory[(current_block * PAGE_SIZE) + smem_counter % PAGE_SIZE];
+            if cmd.as_text().is_ok() {
+                if cmd.as_text().expect("Unexpected") == "#COD" {
+                    umem_counter += 1;
+                    smem_counter = PAGE_SIZE * DATA_PAGES;
+                    break;
+                }
+                if cmd.as_text().expect("Unexpected") == "#DAT" {
+                    smem_counter += 1;
+                    continue;
+                }
+            }
+            if smem_counter % PAGE_SIZE == 0 {
+                current_block = self.kernel_memory[(block_list as usize * PAGE_SIZE) + smem_counter / PAGE_SIZE].as_u32() as usize;
+            }
+            if umem_counter % PAGE_SIZE == 0 && umem_counter > 0 {
+                if umem_counter / PAGE_SIZE == DATA_PAGES {
+                    break;
+                }
+                umem_cmd_page = self.get_first_empty_user_mem_page().expect("Failed get_first_empty_user_mem_page");
+                
+            }            
+            self.write_to_user_mem_page(umem_cmd_page as usize, umem_counter % PAGE_SIZE, cmd);
+            umem_counter += 1;
+            smem_counter += 1;
+        }
+        // Load code segment into other pages
+        loop {
+            if smem_counter % PAGE_SIZE == 0 {
+                current_block = self.kernel_memory[
+                    (block_list as usize * PAGE_SIZE) + smem_counter / PAGE_SIZE
+                ].as_u32() as usize;
+            }
+            let cmd = self.kernel_memory[(current_block * PAGE_SIZE) + smem_counter % PAGE_SIZE];
+            
+            if umem_counter % PAGE_SIZE == 0 {
+                umem_cmd_page = self.get_first_empty_user_mem_page().expect("Failed get_first_empty_user_mem_page");
+                self.write_to_user_mem_page(
+                    ptr as usize,
+                    umem_counter / PAGE_SIZE,
+                    Word::from_u32(umem_cmd_page)
+                );
+            }
+
+            self.write_to_user_mem_page(umem_cmd_page as usize, umem_counter % PAGE_SIZE, cmd);
+            if cmd.as_text().is_ok() {
+                if cmd.as_text().unwrap() == "HALT" {
+                    break;
+                }
+            }
+            smem_counter += 1;
+            umem_counter += 1;
+        }
+        ptr
+    }
 }

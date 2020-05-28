@@ -2,8 +2,6 @@ use super::process::Process;
 use crate::real_machine::processor::RMProcessor;
 use crate::consts::*;
 use super::resource::Resource;
-use super::read_from_disk::ReadFromDisk;
-use super::jcl::JCL;
 
 
 pub struct JobToUMem {
@@ -12,7 +10,8 @@ pub struct JobToUMem {
     vm: usize,
     state: usize,
     section: usize,
-    resources: Vec<Resource>
+    resources: Vec<Resource>,
+    user_ptr: usize,
 }
 
 
@@ -25,7 +24,16 @@ impl JobToUMem {
             state: P_READY,
             section: 0,
             resources: Vec::new(),
+            user_ptr: 0,
         }
+    }
+    fn get_msg(&self, resource_type: usize) -> String {
+        for res in &self.resources {
+            if res.get_type() == resource_type {
+                return res.get_msg();
+            }
+        }
+        panic!()
     }
 }
 
@@ -72,6 +80,7 @@ impl Process for JobToUMem {
                 if self.has_resource(RES_THEAD_SUPER) {
                     self.section += 1;
                     self.state = P_READY;
+                    return (None, None, None);
                 }
                 else {
                     self.state = P_BLOCKED;
@@ -82,6 +91,7 @@ impl Process for JobToUMem {
                 if self.has_resource(RES_TDAT_SUPER) {
                     self.section += 1;
                     self.state = P_READY;
+                    return (None, None, None);
                 }
                 else {
                     self.state = P_BLOCKED;
@@ -92,6 +102,7 @@ impl Process for JobToUMem {
                 if self.has_resource(RES_TPROG_SUPER) {
                     self.section += 1;
                     self.state = P_READY;
+                    return (None, None, None);
                 }
                 else {
                     self.state = P_BLOCKED;
@@ -102,6 +113,7 @@ impl Process for JobToUMem {
                 if self.has_resource(RES_U_MEM) {
                     self.section += 1;
                     self.state = P_READY;
+                    return (None, None, None);
                 }
                 else {
                     self.state = P_BLOCKED;
@@ -109,7 +121,9 @@ impl Process for JobToUMem {
                 }
             },
             4 => {
-                todo!();
+                let kernel_ptr = self.get_msg(RES_THEAD_SUPER);
+                
+                return (None, None, None);
             },
             5 => {
                 let mut res = Resource::new(RES_TASK_IN_USER);
