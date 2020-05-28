@@ -134,6 +134,43 @@ impl Process for JobGovernor {
                 }
             },
 
+            10 => {
+                let answer = self.take_resource(RES_FROM_FILEWORK);
+                if answer.get_msg().contains("Filework error") {
+                    let mut res = Resource::new(RES_LINE_IN_MEM);
+                    let mut text = String::new();
+                    res.set_msg("eERROR: Filework Error!".to_string());
+                    res.set_recipient(PID_PRINT_LINE);
+                    self.section = 0;
+                    self.resources = Vec::new();
+                    return(None, Some(res), None, None);
+                    
+                }
+                else {
+                    self.section = 7;
+                    self.state = P_READY;
+                    (None, None, None, None)
+                }
+            },
+
+            11 => {// Naikinti virtualia masina
+            todo!();
+            },
+
+            12 => {
+                self.section += 1;
+                return (None, Some(self.take_resource(RES_U_MEM)), None, None)
+            },
+
+            13 => {
+                let mut res = Resource::new(RES_TASK_IN_USER);
+                res.set_msg("0".to_string());
+                res.set_recipient(PID_MAIN_PROC);
+                self.section = 0;
+                self.resources = Vec::new();
+                return(None, Some(res), None, None);
+            }
+
 
             _ => panic!(),
         }
