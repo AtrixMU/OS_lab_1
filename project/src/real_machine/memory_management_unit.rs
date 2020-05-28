@@ -10,7 +10,7 @@ use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct MemoryManagementUnit {
-    kernel_memory: Vec<Word>,
+    pub kernel_memory: Vec<Word>,
     user_memory: Vec<Word>,
     hard_drive: Vec<Word>,
     open_files: HashMap<u32, usize>
