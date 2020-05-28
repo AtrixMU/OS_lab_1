@@ -138,7 +138,7 @@ impl Process for ReadFromDisk {
         }
         (None, None, None, None)
     }
-    fn print(&self, rm: &RMProcessor) {
+    fn print(&self, _rm: &RMProcessor) {
         println!("Process: ReadFromDisk");
         print!("Status: ");
         match self.state {

@@ -234,7 +234,7 @@ impl Process for JCL {
         }
         (None, None, None, None)
     }
-    fn print(&self, rm: &RMProcessor) {
+    fn print(&self, _rm: &RMProcessor) {
         println!("Process: JCL");
         print!("Status: ");
         match self.state {

@@ -23,14 +23,6 @@ impl VM {
             resources: Vec::new(),
         }
     }
-    fn get_msg(&self, resource_type: usize) -> String {
-        for res in &self.resources {
-            if res.get_type() == resource_type {
-                return res.get_msg();
-            }
-        }
-        panic!()
-    }
 }
 impl Process for VM {
     fn get_state(&self) -> usize {
@@ -77,7 +69,7 @@ impl Process for VM {
         }
         (None, None, None, None)
     }
-    fn print(&self, rm: &RMProcessor) {
+    fn print(&self, _rm: &RMProcessor) {
         println!("Process: VM");
         print!("Status: ");
         match self.state {
