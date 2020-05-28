@@ -642,6 +642,7 @@ impl MemoryManagementUnit {
         // Load data segment into first page
         loop {
             let cmd = self.kernel_memory[(current_block * PAGE_SIZE) + smem_counter % PAGE_SIZE];
+            self.kernel_memory[(current_block * PAGE_SIZE) + smem_counter % PAGE_SIZE].set_value(0);
             if cmd.as_text().is_ok() {
                 if cmd.as_text().expect("Unexpected") == "#COD" {
                     umem_counter += 1;
@@ -675,6 +676,7 @@ impl MemoryManagementUnit {
                 ].as_u32() as usize;
             }
             let cmd = self.kernel_memory[(current_block * PAGE_SIZE) + smem_counter % PAGE_SIZE];
+            self.kernel_memory[(current_block * PAGE_SIZE) + smem_counter % PAGE_SIZE].set_value(0);
             
             if umem_counter % PAGE_SIZE == 0 {
                 umem_cmd_page = self.get_first_empty_user_mem_page().expect("Failed get_first_empty_user_mem_page");
@@ -693,6 +695,10 @@ impl MemoryManagementUnit {
             }
             smem_counter += 1;
             umem_counter += 1;
+        }
+        for i in 0..PAGE_SIZE {
+            self.kernel_memory[(block_list * PAGE_SIZE) + i].set_value(0);
+            self.kernel_memory[(kernel_ptr * PAGE_SIZE) + i].set_value(0);
         }
         ptr
     }

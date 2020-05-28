@@ -76,7 +76,7 @@ impl Process for JCL {
         }
         false
     }
-    fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>) {
+    fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>, Option<usize>) {
         match self.section {
             0 => {
                 if self.has_resource(RES_TASK_IN_SUPER) {
@@ -85,7 +85,7 @@ impl Process for JCL {
                 }
                 else {
                     self.state = P_BLOCKED;
-                    return (Some(RES_TASK_IN_SUPER), None, None);
+                    return (Some(RES_TASK_IN_SUPER), None, None, None);
                 }
             },
             1 => {
@@ -111,14 +111,15 @@ impl Process for JCL {
                 let mut res = Resource::new(RES_THEAD_SUPER);
                 res.set_msg(format!("{}", self.ptr));
                 self.section = 5;
-                return (None, Some(res), None);
+                return (None, Some(res), None, None);
             },
             4 => { //Error'as jeigu netinkamas
                 let mut res = Resource::new(RES_LINE_IN_MEM);
                 res.set_msg("eERROR: Invalid header block!".to_string());
                 res.set_recipient(PID_PRINT_LINE);
                 self.section = 0;
-                return (None, Some(res), None);
+                self.resources = Vec::new();
+                return (None, Some(res), None, None);
             },
             5 => { 
                 let block_list = rm.mmu.kernel_memory[(self.ptr * PAGE_SIZE) + PAGE_SIZE - 1].as_u32() as usize;
@@ -131,7 +132,7 @@ impl Process for JCL {
                     }
                     if current_block == 0 {
                         self.section = 7;
-                        return (None, None, None);
+                        return (None, None, None, None);
                     }
                     let cmd = rm.mmu.kernel_memory[(current_block * PAGE_SIZE) + (cmd_index % PAGE_SIZE)];
                     if cmd.as_text().is_ok() {
@@ -145,32 +146,33 @@ impl Process for JCL {
             6 => {
                 let res = Resource::new(RES_TDAT_SUPER);
                 self.section = 8;
-                return (None, Some(res), None);
+                return (None, Some(res), None, None);
             },            
             7 => {
                 let mut res = Resource::new(RES_LINE_IN_MEM);
                 res.set_msg("eERROR: Code block does not exist!".to_string());
                 res.set_recipient(PID_PRINT_LINE);
                 self.section = 0;
-                return(None, Some(res), None);
+                self.resources = Vec::new();
+                return(None, Some(res), None, None);
             },
             8 => {
                 let block_list = rm.mmu.kernel_memory[(self.ptr * PAGE_SIZE) + PAGE_SIZE - 1].as_u32() as usize;
                 let current_block = rm.mmu.kernel_memory[(block_list as usize * PAGE_SIZE) + self.code_index / PAGE_SIZE].as_u32() as usize;
                 if current_block == 0 {
                     self.section = 10;
-                    return (None, None, None);
+                    return (None, None, None, None);
                 }
                 let cmd = rm.mmu.kernel_memory[(current_block * PAGE_SIZE) + (self.code_index % PAGE_SIZE)];
                 self.code_index += 1;
                 if cmd.as_text().is_err() {
                     self.section = 10;
-                    return (None, None, None);
+                    return (None, None, None, None);
                 }
                 let cmd = cmd.as_text().unwrap();
                 if &cmd == "HALT" {
                     self.section = 9;
-                    return (None, None, None);
+                    return (None, None, None, None);
                 }
                 if cmd.chars().last().expect("error parsing cmd") == 'R' || ["LOAD", "STOR"].contains(&cmd.as_str()) {
                     for _ in 0..2 {
@@ -178,58 +180,59 @@ impl Process for JCL {
                         let current_block = rm.mmu.kernel_memory[(block_list as usize * PAGE_SIZE) + self.code_index / PAGE_SIZE].as_u32() as usize;
                         if current_block == 0 {
                             self.section = 10;
-                            return (None, None, None);
+                            return (None, None, None, None);
                         }
                         let cmd = rm.mmu.kernel_memory[(current_block * PAGE_SIZE) + (self.code_index % PAGE_SIZE)];
                         self.code_index += 1;
                         if cmd.as_text().is_err() {
                             self.section = 10;
-                            return (None, None, None);
+                            return (None, None, None, None);
                         }
                     }
                     self.section = 8;
-                    return (None, None, None);
+                    return (None, None, None, None);
                 }
                 else if cmd.chars().last().expect("error parsing cmd") == 'V' || cmd == "LOOP" || cmd == "MOVN" {
                     let block_list = rm.mmu.kernel_memory[(self.ptr * PAGE_SIZE) + PAGE_SIZE - 1].as_u32() as usize;
                     let current_block = rm.mmu.kernel_memory[(block_list as usize * PAGE_SIZE) + self.code_index / PAGE_SIZE].as_u32() as usize;
                     if current_block == 0 {
                         self.section = 10;
-                        return (None, None, None);
+                        return (None, None, None, None);
                     }
                     let cmd = rm.mmu.kernel_memory[(current_block * PAGE_SIZE) + (self.code_index % PAGE_SIZE)];
                     self.code_index += 1;
                     if cmd.as_text().is_err() {
                         self.section = 10;
-                        return (None, None, None);
+                        return (None, None, None, None);
                     }
                     self.code_index += 1;
                     self.section = 8;
-                    return (None, None, None);
+                    return (None, None, None, None);
                 }
                 else if ["JUMP", "JPEQ", "JPOF", "JPGE", "JPBE", "JMPG", "JMPB"].contains(&cmd.as_str()) {
                     self.code_index += 1;
                     self.section = 8;
-                    return (None, None, None);
+                    return (None, None, None, None);
                 }
                 self.code_index += 1;
                 self.section = 8;
-                return (None, None, None);
+                return (None, None, None, None);
             },
             9 => {
                 self.section = 0;
-                return(None, Some(self.take_resource(RES_TASK_IN_SUPER)), None);
+                return(None, Some(self.take_resource(RES_TASK_IN_SUPER)), None, None);
             },
             10 => {
                 let mut res = Resource::new(RES_LINE_IN_MEM);
                 res.set_msg("eERROR: invalid command!".to_string());
                 res.set_recipient(PID_PRINT_LINE);
                 self.section = 0;
-                return(None, Some(res), None);
+                self.resources = Vec::new();
+                return(None, Some(res), None, None);
             },
             _ => panic!(),
         }
-        (None, None, None)
+        (None, None, None, None)
     }
     fn print(&self, rm:&mut RMProcessor) {
         println!("Section: {}", self.section);

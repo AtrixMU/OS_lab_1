@@ -28,6 +28,14 @@ impl MainProc {
             vm_id: 10,
         }
     }
+    fn get_msg(&self, resource_type: usize) -> String {
+        for res in &self.resources {
+            if res.get_type() == resource_type {
+                return res.get_msg();
+            }
+        }
+        panic!()
+    }
 }
 
 impl Process for MainProc {
@@ -67,33 +75,52 @@ impl Process for MainProc {
         }
         false
     }
-    fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>) {
+    fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>, Option<usize>) {
         match self.section {
             0 => {
                 if self.has_resource(RES_TASK_IN_USER) {
-                    self.section += 1;
+                    self.section = 2;
                     self.state = P_READY;
-                    (None,None,None)
+                    return (None, None, None, None);
                 }
                 else {
                     self.state = P_BLOCKED;
-                    return (Some(RES_TASK_IN_SUPER), None, None);
+                    return (Some(RES_TASK_IN_SUPER), None, None, None);
                 }
             },
             1 => {
-                todo!();
-            },
+                let msg = self.get_msg(RES_TASK_IN_USER);
+                let params: Vec<&str> = msg.split_whitespace().collect();
+                if params[1].parse::<usize>().unwrap() > 0 {
+                    self.section = 3;
+                    return (None, None, None, None);
+                }
+                self.section = 2;
+                return (None, None, None, None);
 
+            },
             2 => {
-
-                todo!();
+                let msg = self.get_msg(RES_TASK_IN_USER);
+                let params: Vec<&str> = msg.split_whitespace().collect();
+                let kill = params[2].parse::<usize>().unwrap();
+                self.section = 0;
+                self.resources = Vec::new();
+                return (None, None, None, Some(kill));
             },
-
             3 => {
                 let new_proc = JobGovernor::new(self.vm_id, self.id, 0);
-                self.section = 0;
+                self.section += 1;
+                return (None, None, Some(Box::new(new_proc)), None);
+            }
+            4 => {
+                // let msg = self.get_msg(RES_TASK_IN_USER);
+                let mut res = self.take_resource(RES_TASK_IN_USER);
+                res.set_recipient(self.vm_id);
+                // res.set_msg(format!("{} {}", msg, self.vm_id));
                 self.vm_id += 1;
-                return (None, None, Some(Box::new(new_proc)));
+                self.section = 0;
+                self.resources = Vec::new();
+                return (None, Some(res), None, None)
             }
 
             _ => panic!(),

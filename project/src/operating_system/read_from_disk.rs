@@ -75,7 +75,7 @@ impl Process for ReadFromDisk {
         false
     }
 
-    fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>) {
+    fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>, Option<usize>) {
         match self.section {
             0 => {
                 if self.has_resource(RES_FROM_USER_INT) {
@@ -84,7 +84,7 @@ impl Process for ReadFromDisk {
                 }
                 else {
                     self.state = P_BLOCKED;
-                    return (Some(RES_FROM_USER_INT), None, None);
+                    return (Some(RES_FROM_USER_INT), None, None, None);
                 }
             },
             1 => {
@@ -94,7 +94,7 @@ impl Process for ReadFromDisk {
                 }
                 else {
                     self.state = P_BLOCKED;
-                    return (Some(RES_CHNL), None, None);
+                    return (Some(RES_CHNL), None, None, None);
                 }
             },
             2 => {
@@ -108,7 +108,7 @@ impl Process for ReadFromDisk {
                 }
                 else {
                     self.state = P_BLOCKED;
-                    return (Some(RES_S_MEM), None, None);
+                    return (Some(RES_S_MEM), None, None, None);
                 }
             },
             4 => {
@@ -117,23 +117,25 @@ impl Process for ReadFromDisk {
                 res.set_msg(format!("{}", ptr));
                 self.add_resource(res);
                 self.section += 1;
-                return (None, None, None);
+                return (None, None, None, None);
             },
             5 => {
                 self.section += 1;
-                return (None, Some(self.take_resource(RES_S_MEM)), None)
+                return (None, Some(self.take_resource(RES_S_MEM)), None, None)
             },
             6 => {
                 self.section += 1;
-                return (None, Some(self.take_resource(RES_CHNL)), None)
+                return (None, Some(self.take_resource(RES_CHNL)), None, None)
             },
             7 => {
                 self.section = 0;
                 self.take_resource(RES_FROM_USER_INT);
-                return (None, Some(self.take_resource(RES_TASK_IN_SUPER)), None)
+                let res = self.take_resource(RES_TASK_IN_SUPER);
+                self.resources = Vec::new();
+                return (None, Some(res), None, None)
             }
             _ => panic!(),
         }
-        (None, None, None)
+        (None, None, None, None)
     }
 }
