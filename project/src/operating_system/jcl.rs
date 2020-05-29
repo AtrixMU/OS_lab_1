@@ -42,6 +42,9 @@ impl JCL {
 }
 
 impl Process for JCL {
+    fn get_id(&self) -> usize {
+        self.id
+    }
     fn get_state(&self) -> usize {
         self.state
     }

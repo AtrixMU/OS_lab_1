@@ -40,6 +40,9 @@ impl FileWork {
 }
 
 impl Process for FileWork {
+    fn get_id(&self) -> usize {
+        self.id
+    }
     fn get_state(&self) -> usize {
         self.state
     }

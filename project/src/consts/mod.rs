@@ -68,6 +68,7 @@ pub const RES_THEAD_SUPER: usize = 12;      // Task header in supervisor memory 
 pub const RES_TPROG_SUPER: usize = 13;      // Task program in supervisor memory ("Užduoties programa supervizorinėje atmintyje")
 pub const RES_TASK_IN_USER: usize = 14;     // Task program in user memory ("Užduotis UMem")
 pub const RES_TDAT_SUPER: usize = 15;       // Task data in supervisors memory ("Uzduoties duomenys supervizorineje atmintyje")
+pub const RES_MOS_END: usize = 16;
 
 // Process states
 pub const P_READY: usize = 0;
@@ -91,3 +92,4 @@ pub const PID_JOB_TO_UMEM: usize = 4;
 pub const PID_MAIN_PROC: usize = 5;
 pub const PID_FILE_WORK: usize = 6;
 pub const PID_INTERRUPT: usize = 7;
+pub const PID_CIN: usize = 8;

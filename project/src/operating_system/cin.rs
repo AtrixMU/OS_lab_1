@@ -43,6 +43,9 @@ impl CIN {
 }
 
 impl Process for CIN {
+    fn get_id(&self) -> usize {
+        self.id
+    }
     fn get_priority(&self) -> usize {
         self.priority
     }

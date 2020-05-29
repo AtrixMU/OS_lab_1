@@ -44,6 +44,9 @@ impl JobGovernor {
 }
 
 impl Process for JobGovernor {
+    fn get_id(&self) -> usize {
+        self.id
+    }
     fn get_state(&self) -> usize {
         self.state
     }

@@ -41,6 +41,9 @@ impl MainProc {
 }
 
 impl Process for MainProc {
+    fn get_id(&self) -> usize {
+        self.id
+    }
     fn get_state(&self) -> usize {
         self.state
     }
@@ -124,7 +127,6 @@ impl Process for MainProc {
                 self.resources = Vec::new();
                 return (None, Some(res), None, None)
             }
-
             _ => panic!(),
         }
     }

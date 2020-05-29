@@ -12,4 +12,5 @@ pub trait Process {
     fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>, Option<usize>);
     fn print(&self, rm: &RMProcessor);
     fn get_priority(&self) -> usize;
+    fn get_id(&self) -> usize;
 }

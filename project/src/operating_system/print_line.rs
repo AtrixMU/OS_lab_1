@@ -28,6 +28,9 @@ impl PrintLine {
 }
 
 impl Process for PrintLine {
+    fn get_id(&self) -> usize {
+        self.id
+    }
     fn get_state(&self) -> usize {
         self.state
     }
