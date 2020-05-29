@@ -2,7 +2,6 @@ use super::process::Process;
 use crate::real_machine::processor::RMProcessor;
 use crate::consts::*;
 use super::resource::Resource;
-use super::job_governor::JobGovernor;
 
 
 pub struct FileWork {
@@ -41,6 +40,9 @@ impl FileWork {
 }
 
 impl Process for FileWork {
+    fn get_id(&self) -> usize {
+        self.id
+    }
     fn get_state(&self) -> usize {
         self.state
     }

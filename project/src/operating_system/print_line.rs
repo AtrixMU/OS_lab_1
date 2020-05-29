@@ -28,6 +28,9 @@ impl PrintLine {
 }
 
 impl Process for PrintLine {
+    fn get_id(&self) -> usize {
+        self.id
+    }
     fn get_state(&self) -> usize {
         self.state
     }
@@ -133,8 +136,7 @@ impl PrintLine{
                 rm.process_prts();
                 rm.set_vars(vm + 10);
             },
-             _ => println!("Invalid type for printing!") 
-
+             _ => println!("Invalid type for printing!"),
         }
     }
     

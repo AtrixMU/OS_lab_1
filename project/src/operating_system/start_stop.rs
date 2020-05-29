@@ -8,6 +8,7 @@ use super::job_to_umem::JobToUMem;
 use super::main_proc::MainProc;
 use super::print_line::PrintLine;
 use super::file_work::FileWork;
+use super::cin::CIN;
 
 pub struct StartStop {
     id: usize,
@@ -35,6 +36,9 @@ impl StartStop {
 }
 
 impl Process for StartStop {
+    fn get_id(&self) -> usize {
+        self.id
+    }
     fn get_state(&self) -> usize {
         self.state
     }
@@ -109,15 +113,59 @@ impl Process for StartStop {
                 return (None, None, Some(Box::new(new_proc)), None);
             },
             7 => {
-                let new_proc = PrintLine::new(PID_PRINT_LINE,self.id,0);
+                let new_proc = PrintLine::new(PID_PRINT_LINE, self.id, 0);
                 self.section += 1;
-                return (None, None, Some(Box::new(new_proc)),None);
+                return (None, None, Some(Box::new(new_proc)), None);
             },
             8 => {
-                let new_proc = FileWork::new(PID_FILE_WORK,self.id,0);
+                let new_proc = FileWork::new(PID_FILE_WORK, self.id, 0);
                 self.section += 1;
-                return (None, None, Some(Box::new(new_proc)),None);
-            }
+                return (None, None, Some(Box::new(new_proc)), None);
+            },
+            9 => {
+                let new_proc = CIN::new(PID_CIN, self.id, 0);
+                self.section += 1;
+                return (None, None, Some(Box::new(new_proc)), None);
+            },
+            10 => {
+                if self.has_resource(RES_MOS_END) {
+                    self.section += 1;
+                    self.state = P_READY;
+                    return (None, None, None, None);
+                }
+                else {
+                    self.state = P_BLOCKED;
+                    return (Some(RES_MOS_END), None, None, None);
+                }
+            },
+            11 => {
+                self.section += 1;
+                return (None, None, None, Some(PID_CIN));
+            },
+            12 => {
+                self.section += 1;
+                return (None, None, None, Some(PID_FILE_WORK));
+            },
+            13 => {
+                self.section += 1;
+                return (None, None, None, Some(PID_PRINT_LINE));
+            },
+            14 => {
+                self.section += 1;
+                return (None, None, None, Some(PID_MAIN_PROC));
+            },
+            15 => {
+                self.section += 1;
+                return (None, None, None, Some(PID_JOB_TO_UMEM));
+            },
+            16 => {
+                self.section += 1;
+                return (None, None, None, Some(PID_JCL));
+            },
+            17 => {
+                self.section += 1;
+                return (None, None, None, Some(PID_READ_FROM_DISK));
+            },
             _ => panic!(),
         }
     }

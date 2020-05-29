@@ -14,6 +14,7 @@ pub struct ReadFromDisk {
     resources: Vec<Resource>,
     file_data: Vec<Word>,
     priority: usize,
+    end: bool,
 }
 
 impl ReadFromDisk {
@@ -27,6 +28,7 @@ impl ReadFromDisk {
             resources: Vec::new(),
             file_data: Vec::new(),
             priority: 3,
+            end: false,
         }
     }
     fn get_msg(&self, resource_type: usize) -> String {
@@ -40,6 +42,9 @@ impl ReadFromDisk {
 }
 
 impl Process for ReadFromDisk {
+    fn get_id(&self) -> usize {
+        self.id
+    }
     fn get_state(&self) -> usize {
         self.state
     }
@@ -80,6 +85,14 @@ impl Process for ReadFromDisk {
     fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>, Option<usize>) {
         match self.section {
             0 => {
+                if self.end {
+                    return (None, None, None, None);
+                }
+                let mut res = Resource::new(RES_USER_INPUT);
+                res.set_msg(format!("{}", self.id));
+                return (None, Some(res), None, None);
+            }
+            1 => {
                 if self.has_resource(RES_FROM_USER_INT) {
                     self.state = P_READY;
                     self.section += 1;
@@ -89,7 +102,7 @@ impl Process for ReadFromDisk {
                     return (Some(RES_FROM_USER_INT), None, None, None);
                 }
             },
-            1 => {
+            2 => {
                 if self.has_resource(RES_CHNL) {
                     self.state = P_READY;
                     self.section += 1;
@@ -99,11 +112,20 @@ impl Process for ReadFromDisk {
                     return (Some(RES_CHNL), None, None, None);
                 }
             },
-            2 => {
-                let file_name = self.get_msg(RES_FROM_USER_INT);
-                self.file_data = rm.mmu.get_file_data(file_name);
-            },
             3 => {
+                let file_name = self.get_msg(RES_FROM_USER_INT);
+                if file_name == "-x".to_string() {
+                    self.end = true;
+                    self.section  = 7;
+                    return (None, None, None, None);
+                }
+                else {
+                    self.file_data = rm.mmu.get_file_data(file_name);
+                    self.section += 1;
+                    return (Some(RES_S_MEM), None, None, None);
+                }
+            },
+            4 => {
                 if self.has_resource(RES_S_MEM) {
                     self.state = P_READY;
                     self.section += 1;
@@ -113,7 +135,7 @@ impl Process for ReadFromDisk {
                     return (Some(RES_S_MEM), None, None, None);
                 }
             },
-            4 => {
+            5 => {
                 let ptr = rm.mmu.upload_to_smem(&self.file_data);
                 let mut res = Resource::new(RES_TASK_IN_SUPER);
                 res.set_msg(format!("{}", ptr));
@@ -121,15 +143,15 @@ impl Process for ReadFromDisk {
                 self.section += 1;
                 return (None, None, None, None);
             },
-            5 => {
+            6 => {
                 self.section += 1;
                 return (None, Some(self.take_resource(RES_S_MEM)), None, None)
             },
-            6 => {
+            7 => {
                 self.section += 1;
                 return (None, Some(self.take_resource(RES_CHNL)), None, None)
             },
-            7 => {
+            8 => {
                 self.section = 0;
                 self.take_resource(RES_FROM_USER_INT);
                 let res = self.take_resource(RES_TASK_IN_SUPER);
