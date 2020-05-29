@@ -151,4 +151,7 @@ impl Process for Interrupt {
         }
         println!();
     }
+    fn get_priority(&self) -> usize {
+        self.priority
+    }
 }

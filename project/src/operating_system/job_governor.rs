@@ -211,4 +211,7 @@ impl Process for JobGovernor {
         }
         println!();
     }
+    fn get_priority(&self) -> usize {
+        self.priority
+    }
 }

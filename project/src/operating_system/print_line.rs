@@ -57,7 +57,7 @@ impl Process for PrintLine {
         self.resources.remove(resource_index)
     }
     fn has_resource(&self, resource_type: usize) -> bool {
-        for res in self.resources {
+        for res in &self.resources {
             if res.get_type() == resource_type {
                 return true;
             }
@@ -101,11 +101,19 @@ impl Process for PrintLine {
             
         }     
     }
-    fn print(&self, rm:& RMProcessor) {
-        let message = String::new();
-        for resource in self.resources {
+    fn print(&self, rm:& RMProcessor){
+
+    }
+    fn get_priority(&self) -> usize {
+        self.priority
+    } 
+}
+impl PrintLine{
+    fn print(&mut self, rm:&mut RMProcessor) {
+        let mut message = String::new();
+        for resource in self.resources.to_owned() {
             if resource.get_type() == RES_LINE_IN_MEM {
-                message = self.resources.remove(resource.get_type()).get_msg();
+                message = self.resources.remove(resource.get_type()).get_msg().to_owned();
                 break;
             }      
         }
@@ -119,4 +127,5 @@ impl Process for PrintLine {
 
         }
     }
+    
 }

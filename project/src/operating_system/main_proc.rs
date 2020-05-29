@@ -165,4 +165,7 @@ impl Process for MainProc {
         }
         println!();
     }
+    fn get_priority(&self) -> usize {
+        self.priority
+    }
 }

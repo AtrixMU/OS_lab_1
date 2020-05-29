@@ -176,4 +176,7 @@ impl Process for ReadFromDisk {
         }
         println!();
     }
+    fn get_priority(&self) -> usize {
+        self.priority
+    }
 }

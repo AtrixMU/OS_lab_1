@@ -6,7 +6,8 @@ use super::read_from_disk::ReadFromDisk;
 use super::jcl::JCL;
 use super::job_to_umem::JobToUMem;
 use super::main_proc::MainProc;
-
+use super::print_line::PrintLine;
+use super::file_work::FileWork;
 
 pub struct StartStop {
     id: usize,
@@ -106,6 +107,16 @@ impl Process for StartStop {
                 let new_proc = MainProc::new(PID_MAIN_PROC, self.id, 0);
                 self.section += 1;
                 return (None, None, Some(Box::new(new_proc)), None);
+            },
+            7 => {
+                let new_proc = PrintLine::new(PID_PRINT_LINE,self.id,0);
+                self.section += 1;
+                return (None, None, Some(Box::new(new_proc)),None);
+            },
+            8 => {
+                let new_proc = FileWork::new(PID_FILE_WORK,self.id,0);
+                self.section += 1;
+                return (None, None, Some(Box::new(new_proc)),None);
             }
             _ => panic!(),
         }
@@ -145,5 +156,8 @@ impl Process for StartStop {
             }
         }
         println!();
+    }
+    fn get_priority(&self) -> usize {
+        self.priority
     }
 }

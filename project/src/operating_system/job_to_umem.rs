@@ -173,4 +173,7 @@ impl Process for JobToUMem {
         }
         println!();
     }
+    fn get_priority(&self) -> usize {
+        self.priority
+    }
 }

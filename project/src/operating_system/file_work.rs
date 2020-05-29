@@ -114,8 +114,8 @@ impl Process for FileWork {
                 }
             },
             3 => { // Parenkame failu dirbimo rezima pagal gauta pranesima
-                let message = self.take_resource(RES_FILE_PACK).get_msg().as_str();
-                match message {
+                let message = self.take_resource(RES_FILE_PACK).get_msg();
+                match message.as_str() {
                     "Open" => {
                         rm.process_open();
                     },
@@ -131,6 +131,7 @@ impl Process for FileWork {
                     "Delete" => {
                         rm.process_del();
                     }
+                    _ => panic!()
                 }
                 if rm.get_pi() != 5 || rm.get_pi() != 5 {
                     self.section += 1;
@@ -219,5 +220,8 @@ impl Process for FileWork {
             }
         }
         println!();
+    }
+    fn get_priority(&self) -> usize {
+        self.priority
     }
 }

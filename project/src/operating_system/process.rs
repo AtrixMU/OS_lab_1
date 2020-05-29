@@ -11,4 +11,5 @@ pub trait Process {
     fn has_resource(&self, resource_type: usize) -> bool;
     fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>, Option<usize>);
     fn print(&self, rm: &RMProcessor);
+    fn get_priority(&self) -> usize;
 }
