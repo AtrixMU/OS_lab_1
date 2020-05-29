@@ -293,9 +293,13 @@ impl Processor for RMProcessor {
             }
         }
     }
+
 }
 
 impl RMProcessor {
+    pub fn get_pi(&self) -> u8{
+        return self.pi ;
+    }
     pub fn run_instruction_loop(&mut self) {
         loop {
             let mut key_list: Vec<usize> = Vec::new();
@@ -1415,19 +1419,19 @@ impl RMProcessor {
             }
         }
     }
-    fn process_open(&mut self) {
+    pub fn process_open(&mut self) {
         self.ki = INT_OPEN;
     }
-    fn process_read(&mut self) {
+    pub fn process_read(&mut self) {
         self.ki = INT_READ;
     }
-    fn process_wrt(&mut self) {
+    pub fn process_wrt(&mut self) {
         self.ki = INT_WRITE;
     }
-    fn process_cls(&mut self) {
+    pub fn process_cls(&mut self) {
         self.ki = INT_CLOSE;
     }
-    fn process_del(&mut self) {
+    pub fn process_del(&mut self) {
         self.ki = INT_DEL;
     }
 

@@ -5,21 +5,21 @@ use super::resource::Resource;
 use super::job_governor::JobGovernor;
 
 
-pub struct MainProc {
+pub struct FileWork {
     id: usize,
     parent_id: usize,
     vm: usize,
     state: usize,
     section: usize,
     resources: Vec<Resource>,
-    vm_id: usize
+    vm_id: usize,
     priority: usize,
 }
 
 
-impl MainProc {
-    pub fn new(id: usize, parent_id: usize, vm: usize) -> MainProc {
-        MainProc {
+impl FileWork {
+    pub fn new(id: usize, parent_id: usize, vm: usize) -> FileWork {
+        FileWork {
             id: id,
             parent_id: parent_id,
             vm: vm,
@@ -40,7 +40,7 @@ impl MainProc {
     }
 }
 
-impl Process for MainProc {
+impl Process for FileWork {
     fn get_state(&self) -> usize {
         self.state
     }
@@ -114,7 +114,7 @@ impl Process for MainProc {
                 }
             },
             3 => { // Parenkame failu dirbimo rezima pagal gauta pranesima
-                let message = self.take_resource(RES_FILE_PACK);
+                let message = self.take_resource(RES_FILE_PACK).get_msg().as_str();
                 match message {
                     "Open" => {
                         rm.process_open();
@@ -132,18 +132,18 @@ impl Process for MainProc {
                         rm.process_del();
                     }
                 }
-                if rm.pi != 5 || rm.pi != 7 {
+                if rm.get_pi() != 5 || rm.get_pi() != 5 {
                     self.section += 1;
                 }
                 else {
                     self.section = 7;
                 }
-
+               return(None,None,None,None);     
             },
             4 => {
                 // let msg = self.get_msg(RES_TASK_IN_USER);
                 let mut res = self.take_resource(RES_CHNL);
-                self.section += 1
+                self.section += 1;
                 // res.set_msg(format!("{} {}", msg, self.vm_id));
                 return (None, Some(res), None, None)
             },
@@ -162,7 +162,7 @@ impl Process for MainProc {
 
             7 => {
                 let mut res = self.take_resource(RES_CHNL);
-                self.section += 1
+                self.section += 1;
                 // res.set_msg(format!("{} {}", msg, self.vm_id));
                 return (None, Some(res), None, None)
             },
@@ -174,7 +174,7 @@ impl Process for MainProc {
             9 => {
                 let mut res = Resource::new(RES_FROM_FILEWORK);
                 res.set_msg("Filework error".to_string());
-                res.set_recipient(get_vm);
+                res.set_recipient(self.get_vm());
                 self.section = 0;
                 self.resources = Vec::new();
                 return(None, Some(res), None, None);

@@ -64,27 +64,27 @@ impl Process for PrintLine {
         }
         false
     }
-    fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>) {
+    fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>, Option<usize>) {
         match self.section {
             0 => {
                 if self.has_resource(RES_LINE_IN_MEM) {
                     self.section += 1;
                     self.state = P_READY;
-                    (None,None,None)
+                    (None,None,None,None)
                 }
                 else {
-                    return (Some(RES_LINE_IN_MEM), None, None);
+                    return (Some(RES_LINE_IN_MEM), None, None, None);
                 }
             },
             1 => {
                 if self.has_resource(RES_CHNL){
                     self.section += 1;
                     self.state = P_READY;
-                    (None,None,None)
+                    (None,None,None,None)
                 }
                     
                 else {
-                    return (Some(RES_CHNL), None, None);
+                    return (Some(RES_CHNL), None, None, None);
                 }
                 
             },
@@ -92,16 +92,16 @@ impl Process for PrintLine {
                 let source_id = 0;
                 let destination_id = 4;
                 self.print(rm);
-                (None,None,None)
+                (None,None,None, None)
             },
             3 => {
-                return(None,Some(self.take_resource(RES_CHNL)),None);
+                return(None,Some(self.take_resource(RES_CHNL)),None, None);
             },
             _ => panic!(),
             
         }     
     }
-    fn print(&self, rm:&mut RMProcessor) {
+    fn print(&self, rm:& RMProcessor) {
         let message = String::new();
         for resource in self.resources {
             if resource.get_type() == RES_LINE_IN_MEM {
