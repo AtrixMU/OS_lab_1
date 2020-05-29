@@ -104,9 +104,12 @@ impl Process for CIN {
                 let id = params[0].parse::<usize>().unwrap();
                 let mut res = Resource::new(RES_FROM_USER_INT);
                 if id < 10 {
+                    println!("Enter the file name");
                     let mut buffer = String::new();
-                    std::io::stdin().read_to_string(&mut buffer).unwrap();
-                    res.set_msg(buffer);
+                    std::io::stdin().read_line(&mut buffer).unwrap();
+                    let mut buffer = buffer.trim().to_string();
+                    res.set_msg(buffer.clone());
+                    println!("Got: {}", buffer);
                 }
                 else {
                     let inter = params[1].parse::<u8>().unwrap();

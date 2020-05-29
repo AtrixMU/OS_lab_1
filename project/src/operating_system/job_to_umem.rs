@@ -128,6 +128,7 @@ impl Process for JobToUMem {
             4 => {
                 let kernel_ptr = self.get_msg(RES_THEAD_SUPER).parse::<usize>().unwrap();
                 self.user_ptr = rm.mmu.smem_to_umem(kernel_ptr) as usize;
+                self.section += 1;
                 return (None, None, None, None);
             },
             5 => {

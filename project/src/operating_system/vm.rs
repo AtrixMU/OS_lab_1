@@ -75,7 +75,7 @@ impl Process for VM {
         (None, None, None, None)
     }
     fn print(&self, _rm: &RMProcessor) {
-        println!("Process: VM");
+        println!("Process: VM {}", self.get_id());
         print!("Status: ");
         match self.state {
             P_READY => println!("P_READY"),

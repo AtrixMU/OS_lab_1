@@ -69,6 +69,7 @@ impl Process for ReadFromDisk {
             }
         }
         if resource_index == self.resources.len() {
+            println!("wanted {}", resource_type);
             panic!();
         }
         self.resources.remove(resource_index)
@@ -86,8 +87,10 @@ impl Process for ReadFromDisk {
         match self.section {
             0 => {
                 if self.end {
+                    self.state = P_BLOCKED;
                     return (None, None, None, None);
                 }
+                self.section += 1;
                 let mut res = Resource::new(RES_USER_INPUT);
                 res.set_msg(format!("{}", self.id));
                 return (None, Some(res), None, None);
@@ -149,6 +152,10 @@ impl Process for ReadFromDisk {
             },
             7 => {
                 self.section += 1;
+                if self.end {
+                    self.take_resource(RES_FROM_USER_INT);
+                    self.section = 0;
+                }
                 return (None, Some(self.take_resource(RES_CHNL)), None, None)
             },
             8 => {

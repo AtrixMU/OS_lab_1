@@ -90,7 +90,7 @@ impl Process for MainProc {
                 }
                 else {
                     self.state = P_BLOCKED;
-                    return (Some(RES_TASK_IN_SUPER), None, None, None);
+                    return (Some(RES_TASK_IN_USER), None, None, None);
                 }
             },
             1 => {

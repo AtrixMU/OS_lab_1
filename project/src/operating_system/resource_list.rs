@@ -1,4 +1,6 @@
 use super::resource::Resource;
+use crate::consts::*;
+
 
 #[derive(Debug)]
 pub struct ResourceList {
@@ -17,7 +19,16 @@ impl ResourceList {
 
     }
 
-    pub fn take(&mut self, resource_type: usize ) ->  Option<Resource> {
+    pub fn take(&mut self, resource_type: usize, p_id: usize) ->  Option<Resource> {
+        let res = self.take_specific(resource_type, p_id);
+        if res.is_some() {
+            return res;
+        }
+        else if resource_type == RES_TASK_IN_USER
+            && p_id >= 10
+        {
+            return None
+        }
         let mut res_index = 0;
         let mut found = false;
         for (index, res) in self.free.iter().enumerate() {

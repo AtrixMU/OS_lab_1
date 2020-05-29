@@ -93,41 +93,46 @@ impl Process for StartStop {
                 return (None, Some(res), None, None);
             },
             3 => {
+                let res = Resource::new(RES_CHNL);
+                self.section += 1;
+                return (None, Some(res), None, None);
+            },
+            4 => {
                 let new_proc = ReadFromDisk::new(PID_READ_FROM_DISK, self.id, 0);
                 self.section += 1;
                 return (None, None, Some(Box::new(new_proc)), None);
             },
-            4 => {
+            5 => {
                 let new_proc = JCL::new(PID_JCL, self.id, 0);
                 self.section += 1;
                 return (None, None, Some(Box::new(new_proc)), None);
             },
-            5 => {
+            6 => {
                 let new_proc = JobToUMem::new(PID_JOB_TO_UMEM, self.id, 0);
                 self.section += 1;
                 return (None, None, Some(Box::new(new_proc)), None);
             },
-            6 => {
+            7 => {
                 let new_proc = MainProc::new(PID_MAIN_PROC, self.id, 0);
                 self.section += 1;
                 return (None, None, Some(Box::new(new_proc)), None);
             },
-            7 => {
+            8 => {
                 let new_proc = PrintLine::new(PID_PRINT_LINE, self.id, 0);
                 self.section += 1;
                 return (None, None, Some(Box::new(new_proc)), None);
             },
-            8 => {
+            9 => {
                 let new_proc = FileWork::new(PID_FILE_WORK, self.id, 0);
                 self.section += 1;
                 return (None, None, Some(Box::new(new_proc)), None);
             },
-            9 => {
+            10 => {
                 let new_proc = CIN::new(PID_CIN, self.id, 0);
                 self.section += 1;
                 return (None, None, Some(Box::new(new_proc)), None);
             },
-            10 => {
+            11 => {
                 if self.has_resource(RES_MOS_END) {
                     self.section += 1;
                     self.state = P_READY;
@@ -138,31 +143,31 @@ impl Process for StartStop {
                     return (Some(RES_MOS_END), None, None, None);
                 }
             },
-            11 => {
+            12 => {
                 self.section += 1;
                 return (None, None, None, Some(PID_CIN));
             },
-            12 => {
+            13 => {
                 self.section += 1;
                 return (None, None, None, Some(PID_FILE_WORK));
             },
-            13 => {
+            14 => {
                 self.section += 1;
                 return (None, None, None, Some(PID_PRINT_LINE));
             },
-            14 => {
+            15 => {
                 self.section += 1;
                 return (None, None, None, Some(PID_MAIN_PROC));
             },
-            15 => {
+            16 => {
                 self.section += 1;
                 return (None, None, None, Some(PID_JOB_TO_UMEM));
             },
-            16 => {
+            17 => {
                 self.section += 1;
                 return (None, None, None, Some(PID_JCL));
             },
-            17 => {
+            18 => {
                 self.section += 1;
                 return (None, None, None, Some(PID_READ_FROM_DISK));
             },

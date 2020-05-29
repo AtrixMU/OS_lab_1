@@ -581,6 +581,7 @@ impl MemoryManagementUnit {
     }
     pub fn get_file_data(&self, file_name: String) -> Vec<Word> {
         let mut file_data = Vec::new();
+        let file_name = file_name.trim().to_string();
         let file_start = self.find_file_start(file_name).unwrap();
         let header_page = self.hard_drive[file_start as usize].as_u32() as usize;
         for i in 0..(PAGE_SIZE - 1) {
@@ -621,9 +622,9 @@ impl MemoryManagementUnit {
                 current_block = self.get_first_empty_kernel_mem_page().unwrap();
                 self.kernel_memory[(block_list as usize * PAGE_SIZE) + cmd_index / PAGE_SIZE].set_value(current_block);
             }
-            if current_block == 0 {
-                panic!();
-            }
+            // if current_block == 0 {
+            //     panic!();
+            // }
             self.kernel_memory[(current_block as usize * PAGE_SIZE) + (cmd_index % PAGE_SIZE)].set_word(*word);
         }
         ptr
