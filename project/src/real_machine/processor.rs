@@ -33,7 +33,7 @@ pub struct RMProcessor {
     sr: u16,
     ip: u32,
     ptr: u32,
-    vm_list: HashMap<usize, VMProcessor>,
+    pub vm_list: HashMap<usize, VMProcessor>,
     pub mmu: MemoryManagementUnit,
 }
 
@@ -428,7 +428,7 @@ impl RMProcessor {
         return self.ki;
     }
 
-    fn get_vars(&mut self, vm: usize) {
+    pub fn get_vars(&mut self, vm: usize) {
         self.ax = self.vm_list.get_mut(&vm).expect("Failed to get ax").get_ax();
         self.bx = self.vm_list.get_mut(&vm).expect("Failed to get bx").get_bx();
         self.cx = self.vm_list.get_mut(&vm).expect("Failed to get cx").get_cx();
@@ -438,7 +438,7 @@ impl RMProcessor {
         self.ip = self.vm_list.get_mut(&vm).expect("Failed to get ip").get_ic();
     }
 
-    fn set_vars(&mut self, vm: usize) {
+    pub fn set_vars(&mut self, vm: usize) {
         if !self.vm_list.contains_key(&vm) {
             return;
         }
@@ -1197,7 +1197,7 @@ impl RMProcessor {
         self.ki = INT_GETN;
     }
 
-    fn interrupt_getn(&mut self){
+    pub fn interrupt_getn(&mut self){
         let mut input = String::new();
         stdin().read_line(&mut input).expect("Failed to read line");
         let val: u32 = input.trim().parse().expect("Failed to parse n");
@@ -1263,7 +1263,7 @@ impl RMProcessor {
         self.ki = INT_GETS;
     }
 
-    fn interrupt_gets(&mut self) {
+    pub fn interrupt_gets(&mut self) {
         let mut input = String::new();
         stdin().read_line(&mut input).expect("Failed to read line");
         let word = Word::from_string(input);

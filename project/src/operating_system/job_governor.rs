@@ -1,5 +1,6 @@
 use super::process::Process;
 use crate::real_machine::processor::RMProcessor;
+use crate::virtual_machine::processor::VMProcessor;
 use crate::consts::*;
 use super::resource::Resource;
 use super::vm::VM;
@@ -11,7 +12,9 @@ pub struct JobGovernor {
     vm: usize,
     state: usize,
     section: usize,
-    resources: Vec<Resource>
+    resources: Vec<Resource>,
+    ptr: u32,
+    int_code: u8,
 }
 
 
@@ -24,7 +27,17 @@ impl JobGovernor {
             state: P_READY,
             section: 0,
             resources: Vec::new(),
+            ptr: 0,
+            int_code: 0,
         }
+    }
+    fn get_msg(&self, resource_type: usize) -> String {
+        for res in &self.resources {
+            if res.get_type() == resource_type {
+                return res.get_msg();
+            }
+        }
+        panic!()
     }
 }
 
@@ -68,61 +81,92 @@ impl Process for JobGovernor {
     fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>, Option<usize>) {
         match self.section {
             0 => {
-                if self.has_resource(RES_U_MEM) {
-                    self.section += 1;
-                    self.state = P_READY;
-                    (None,None,None, None)
-                }
-                else {
-                    self.state = P_BLOCKED;
-                    return (Some(RES_U_MEM), None, None, None);
-                }
-            },
-            1 => {
-                let new_proc = VM::new(self.id+10, self.id, 0);
-                self.section += 1;
-                return (None, None, Some(Box::new(new_proc)), None);
-            },
-            2 => {
-                if self.has_resource(RES_INTERRUPT) {
+                if self.has_resource(RES_TASK_IN_USER) {
                     self.section += 1;
                     self.state = P_READY;
                     (None, None, None, None)
                 }
                 else {
                     self.state = P_BLOCKED;
+                    return (Some(RES_TASK_IN_USER), None, None, None);
+                }
+            }
+            1 => {
+                if self.has_resource(RES_U_MEM) {
+                    self.section += 1;
+                    self.state = P_READY;
+                    (None, None, None, None)
+                }
+                else {
+                    self.state = P_BLOCKED;
+                    return (Some(RES_U_MEM), None, None, None);
+                }
+            },
+            2 => {
+                let msg = self.get_msg(RES_TASK_IN_USER);
+                let params: Vec<&str> = msg.split_whitespace().collect();
+                self.ptr = params[0].parse::<u32>().unwrap();
+                let new_proc = VM::new(self.id + 10, self.id, 0);
+                rm.vm_list.insert(self.id + 10, VMProcessor::new(self.ptr));
+                self.section += 1;
+                return (None, None, Some(Box::new(new_proc)), None);
+            },
+            3 => {
+                if self.has_resource(RES_INTERRUPT) {
+                    self.section += 1;
+                    self.state = P_READY;
+                    return (Some(P_READY_SUSP), None, None, Some(self.id + 10));
+                }
+                else {
+                    self.state = P_BLOCKED;
                     return (Some(RES_INTERRUPT), None, None, None);
                 }
             },
-            3 => { //Reikia padaryti virtualios masinos stabdyma
-                todo!();
+            4 => {
+                let msg = self.get_msg(RES_INTERRUPT);
+                let params: Vec<&str> = msg.split_whitespace().collect();
+                self.int_code = params[0].parse::<u8>().unwrap();
+                if self.int_code == INT_HALT {
+                    self.section = 5;
+                    return (None, None, None, None);
+                }
+                if [INT_OPEN, INT_WRITE, INT_CLOSE, INT_READ, INT_DEL].contains(&self.int_code) {
+                    self.section = 8;
+                    return (None, None, None, None);
+                }
+                if [INT_GETN, INT_GETS].contains(&self.int_code) {
+                    self.section = 11;
+                    return (None, None, None, None);
+                }
+                if [INT_PRTN, INT_PRTS].contains(&self.int_code) {
+                    self.section = 13;
+                    return (None, None, None, None);
+                }
+                return (None, None, None, None);
             },
-            4 => { // patikrinti ar halt, patikrinti ar failas, ir ar ivedimo
-                todo!();
+            5 => {
+                self.section = 6;
+                return (None, None, None, Some(self.id + 10));
+            }
+            6 => {
+                rm.mmu.unload_program(self.ptr);
+                self.section = 7;
+                return (None, Some(self.take_resource(RES_U_MEM)), None, None);
             },
-            5 => {// patikrinti pagal interrupta koki message nusiusti (cia yra output)
-                todo!();
-                let mut res = Resource::new(RES_LINE_IN_MEM);
-                
-                // if INT  1, print("n"), if INT 2, print("s")
-                res.set_recipient(PID_PRINT_LINE);
+            7 => {
+                let mut res = self.take_resource(RES_TASK_IN_USER);
+                res.set_msg(format!("{} {} {}", self.ptr, 0, self.id));
                 return(None, Some(res), None, None);
             },
-            6 => {//ivedimas (input)
-                todo!();
-                
-            },
-            7 => { // nebestabdomas VM
-                todo!();
-            },
-            8 => { // darbas su failu paketais, reikia, kad cia gautu atitinkama
-                   // Kernel Interrupt reiksme
-                   todo!();
+            8 => {
                 let mut res = Resource::new(RES_FILE_PACK);
+                res.set_msg(format!("{} {}", self.int_code, self.id));
+                self.section = 9;
+                return (None, Some(res), None, None);
             },
             9 => {
                 if self.has_resource(RES_FROM_FILEWORK) {
-                    self.section += 1;
+                    self.section = 10;
                     self.state = P_READY;
                     (None, None, None, None)
                 }
@@ -131,45 +175,51 @@ impl Process for JobGovernor {
                     return (Some(RES_FROM_FILEWORK), None, None, None);
                 }
             },
-
             10 => {
-                let answer = self.take_resource(RES_FROM_FILEWORK);
-                if answer.get_msg().contains("Filework error") {
+                let msg = self.get_msg(RES_FROM_FILEWORK);
+                if msg.contains("Filework error") {
                     let mut res = Resource::new(RES_LINE_IN_MEM);
-                    let mut text = String::new();
                     res.set_msg("eERROR: Filework Error!".to_string());
                     res.set_recipient(PID_PRINT_LINE);
-                    self.section = 0;
-                    self.resources = Vec::new();
+                    self.section = 5;
                     return(None, Some(res), None, None);
-                    
                 }
-                else {
-                    self.section = 7;
+                self.take_resource(RES_FROM_FILEWORK);
+                self.take_resource(RES_FROM_INTERRUPT);
+                self.section = 3;
+                return (Some(P_READY), None, None, Some(self.id + 10));
+            },
+            11 => {
+                let mut res = Resource::new(RES_USER_INPUT);
+                res.set_msg(format!("{} {}", self.id, self.int_code));
+                self.section = 12;
+                return (None, Some(res), None, None);
+            }
+            12 => {
+                if self.has_resource(RES_FROM_USER_INT) {
                     self.state = P_READY;
+                    self.take_resource(RES_FROM_USER_INT);
+                    self.take_resource(RES_FROM_INTERRUPT);
+                    self.section = 3;
                     (None, None, None, None)
                 }
+                else {
+                    self.state = P_BLOCKED;
+                    return (Some(RES_FROM_USER_INT), None, None, None);
+                }
             },
-
-            11 => {// Naikinti virtualia masina
-            todo!();
-            },
-
-            12 => {
-                self.section += 1;
-                return (None, Some(self.take_resource(RES_U_MEM)), None, None)
-            },
-
             13 => {
-                let mut res = Resource::new(RES_TASK_IN_USER);
-                res.set_msg("0".to_string());
-                res.set_recipient(PID_MAIN_PROC);
-                self.section = 0;
-                self.resources = Vec::new();
-                return(None, Some(res), None, None);
-            }
-
-
+                let mut res = Resource::new(RES_LINE_IN_MEM);
+                if self.int_code == INT_PRTN {
+                    res.set_msg(format!("n{}", self.id));
+                }
+                else {
+                    res.set_msg(format!("s{}", self.id));
+                }
+                self.section = 3;
+                self.take_resource(RES_FROM_INTERRUPT);
+                return (None, Some(res), None, None);
+            },
             _ => panic!(),
         }
     }

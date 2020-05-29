@@ -108,11 +108,21 @@ impl Process for PrintLine {
             }      
         }
         let letter = message.chars().next();
-        let printing =&message[1..];
+        let printing = &message[1..];
         match letter.unwrap() {
             'e' => println!("{}", printing),
-            'n' => {rm.process_prtn()},
-            's' => {rm.process_prts()},
+            'n' => {
+                let vm = printing.parse::<usize>().unwrap();
+                rm.get_vars(id + 10);
+                rm.process_prtn();
+                rm.set_vars(id + 10);
+            },
+            's' => {
+                let vm = printing.parse::<usize>().unwrap();
+                rm.get_vars(id + 10);
+                rm.process_prts();
+                rm.set_vars(id + 10);
+            },
              _ => println!("Invalid type for printing!") 
 
         }
