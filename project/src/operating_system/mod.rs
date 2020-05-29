@@ -10,5 +10,6 @@ pub mod main_proc;
 pub mod vm;
 pub mod job_governor;
 pub mod interrupt;
+pub mod cin;
 pub mod print_line;
 pub mod file_work;
