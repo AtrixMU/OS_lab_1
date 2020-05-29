@@ -15,8 +15,8 @@ impl ResourceList {
     }
 
     pub fn add(&mut self, resource: Resource) {
+        println!("Added: {}", resource.get_type());
         self.free.push(resource);
-
     }
 
     pub fn take(&mut self, resource_type: usize, p_id: usize) ->  Option<Resource> {
@@ -27,7 +27,7 @@ impl ResourceList {
         else if resource_type == RES_TASK_IN_USER
             && p_id >= 10
         {
-            return None
+            return None;
         }
         let mut res_index = 0;
         let mut found = false;
@@ -41,10 +41,10 @@ impl ResourceList {
         if !found {
             return None;
         }
-        Some(self.free.remove(res_index))
+        return Some(self.free.remove(res_index));
     }
 
-    pub fn take_specific(&mut self, resource_type: usize, recipient: usize ) -> Option<Resource> {
+    pub fn take_specific(&mut self, resource_type: usize, recipient: usize) -> Option<Resource> {
         let mut res_index = 0;
         let mut found = false;
         for (index, res) in self.free.iter().enumerate() {

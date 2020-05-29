@@ -119,15 +119,16 @@ impl Process for JCL {
                 return (None, Some(res), None, None);
             },
             4 => { //Error'as jeigu netinkamas
+                self.state = P_READY;
                 let mut res = Resource::new(RES_LINE_IN_MEM);
                 res.set_msg("eERROR: Invalid header block!".to_string());
-                panic!();
                 res.set_recipient(PID_PRINT_LINE);
                 self.section = 0;
-                self.resources = Vec::new();
+                self.resources.clear();
                 return (None, Some(res), None, None);
             },
             5 => { 
+                self.state = P_READY;
                 let block_list = rm.mmu.kernel_memory[(self.ptr * PAGE_SIZE) + PAGE_SIZE - 1].as_u32() as usize;
                 let mut last_word = String::new();
                 let mut cmd_index = 0;
@@ -136,10 +137,10 @@ impl Process for JCL {
                     if cmd_index % PAGE_SIZE == 0 {
                         current_block = rm.mmu.kernel_memory[(block_list as usize * PAGE_SIZE) + cmd_index / PAGE_SIZE].as_u32() as usize;
                     }
-                    if current_block == 0 {
-                        self.section = 7;
-                        return (None, None, None, None);
-                    }
+                    // if current_block == 0 {
+                    //     self.section = 7;
+                    //     return (None, None, None, None);
+                    // }
                     let cmd = rm.mmu.kernel_memory[(current_block * PAGE_SIZE) + (cmd_index % PAGE_SIZE)];
                     if cmd.as_text().is_ok() {
                         last_word = cmd.as_text().unwrap();
@@ -152,17 +153,19 @@ impl Process for JCL {
                 return (None, None, None, None);
             },
             6 => {
-                let res = Resource::new(RES_TDAT_SUPER);
+                self.state = P_READY;
+                println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                let mut res = Resource::new(RES_TDAT_SUPER);
+                res.set_recipient(PID_JOB_TO_UMEM);
                 self.section = 8;
-                return (None, Some(res), None, None);
+                return (None, Some(Resource::new(RES_TDAT_SUPER)), None, None)
             },            
             7 => {
                 let mut res = Resource::new(RES_LINE_IN_MEM);
                 res.set_msg("eERROR: Code block does not exist!".to_string());
-                panic!();
                 res.set_recipient(PID_PRINT_LINE);
                 self.section = 0;
-                self.resources = Vec::new();
+                self.resources.clear();
                 return(None, Some(res), None, None);
             },
             8 => {
@@ -181,10 +184,8 @@ impl Process for JCL {
                 let cmd = cmd.as_text().unwrap();
                 if cmd == "HALT".to_string() {
                     self.section = 9;
-                    println!("Halt found");
                     return (None, None, None, None);
                 }
-                println!("cmd was {}", cmd);
                 if cmd.chars().last().expect("error parsing cmd") == 'R' || ["LOAD", "STOR"].contains(&cmd.as_str()) {
                     for _ in 0..2 {
                         // let block_list = rm.mmu.kernel_memory[(self.ptr * PAGE_SIZE) + PAGE_SIZE - 1].as_u32() as usize;
@@ -231,16 +232,15 @@ impl Process for JCL {
             },
             9 => {
                 self.section = 0;
-                return(None, Some(self.take_resource(RES_TASK_IN_SUPER)), None, None);
+                let res = self.take_resource(RES_TASK_IN_SUPER);
+                return(None, Some(res), None, None);
             },
             10 => {
                 let mut res = Resource::new(RES_LINE_IN_MEM);
                 res.set_msg("eERROR: invalid command!".to_string());
-                panic!();
-
                 res.set_recipient(PID_PRINT_LINE);
                 self.section = 0;
-                self.resources = Vec::new();
+                self.resources.clear();
                 return(None, Some(res), None, None);
             },
             _ => panic!(),

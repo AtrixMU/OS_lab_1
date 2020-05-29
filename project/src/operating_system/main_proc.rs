@@ -84,7 +84,7 @@ impl Process for MainProc {
         match self.section {
             0 => {
                 if self.has_resource(RES_TASK_IN_USER) {
-                    self.section = 2;
+                    self.section = 1;
                     self.state = P_READY;
                     return (None, None, None, None);
                 }
@@ -100,6 +100,8 @@ impl Process for MainProc {
                     self.section = 3;
                     return (None, None, None, None);
                 }
+                println!("{:?}", params);
+                panic!();
                 self.section = 2;
                 return (None, None, None, None);
 
@@ -109,7 +111,7 @@ impl Process for MainProc {
                 let params: Vec<&str> = msg.split_whitespace().collect();
                 let kill = params[2].parse::<usize>().unwrap();
                 self.section = 0;
-                self.resources = Vec::new();
+                self.resources.clear();
                 return (None, None, None, Some(kill));
             },
             3 => {
@@ -124,7 +126,7 @@ impl Process for MainProc {
                 // res.set_msg(format!("{} {}", msg, self.vm_id));
                 self.vm_id += 1;
                 self.section = 0;
-                self.resources = Vec::new();
+                self.resources.clear();
                 return (None, Some(res), None, None)
             }
             _ => panic!(),

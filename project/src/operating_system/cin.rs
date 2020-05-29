@@ -131,7 +131,7 @@ impl Process for CIN {
         }
     }
     fn print(&self, _rm: &RMProcessor) {
-        println!("Process: VM");
+        println!("Process: CIN");
         print!("Status: ");
         match self.state {
             P_READY => println!("P_READY"),
