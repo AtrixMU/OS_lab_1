@@ -121,6 +121,7 @@ impl Process for CIN {
                 }
                 res.set_recipient(id);
                 self.section = 0;
+                self.take_resource(RES_USER_INPUT);
                 return (None, Some(res), None, None);
             },
             _ => panic!(),

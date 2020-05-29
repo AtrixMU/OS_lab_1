@@ -2,6 +2,7 @@
 
 // use project::virtual_machine::processor::VMProcessor;
 use project::real_machine::processor::RMProcessor;
+use project::operating_system::kernel::Kernel;
 // use project::traits::Processor;
 
 fn main() {
@@ -15,10 +16,12 @@ fn main() {
     // mmu.print_virtual_memory(temp);
     // mmu.unload_program(temp);
     // mmu.print_user_memory();
-    test.add_program("Simple_program6".to_string(), true);
+    // test.add_program("Simple_program6".to_string(), true);
     // test.add_program("Simple_program2".to_string(), true);
     // test.add_program("Simple_program3".to_string(), true);
     // test.add_program("Simple_program4".to_string(), true);
     // test.add_program("Simple_program5".to_string(), true);
-    test.run_instruction_loop();
+    // test.run_instruction_loop();
+    let mut kernel = Kernel::new();
+    kernel.planner(&mut test);
 }
