@@ -133,8 +133,7 @@ impl PrintLine{
                 rm.process_prts();
                 rm.set_vars(vm + 10);
             },
-             _ => println!("Invalid type for printing!") 
-
+             _ => println!("Invalid type for printing!"),
         }
     }
     

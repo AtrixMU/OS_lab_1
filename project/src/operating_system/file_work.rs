@@ -2,7 +2,6 @@ use super::process::Process;
 use crate::real_machine::processor::RMProcessor;
 use crate::consts::*;
 use super::resource::Resource;
-use super::job_governor::JobGovernor;
 
 
 pub struct FileWork {

@@ -14,6 +14,7 @@ pub struct CIN {
     resources: Vec<Resource>,
     msg: String,
     dest: usize,
+    priority: usize,
 }
 
 
@@ -28,6 +29,7 @@ impl CIN {
             resources: Vec::new(),
             msg: String::new(),
             dest: 0,
+            priority: 3,
         }
     }
     fn get_msg(&self, resource_type: usize) -> String {
@@ -41,6 +43,9 @@ impl CIN {
 }
 
 impl Process for CIN {
+    fn get_priority(&self) -> usize {
+        self.priority
+    }
     fn get_state(&self) -> usize {
         self.state
     }
