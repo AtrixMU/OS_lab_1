@@ -68,7 +68,7 @@ impl Process for MainProc {
             }
         }
         if resource_index == self.resources.len() {
-            panic!();
+            println!("IT WAS HERE");
         }
         self.resources.remove(resource_index)
     }
@@ -84,7 +84,7 @@ impl Process for MainProc {
         match self.section {
             0 => {
                 if self.has_resource(RES_TASK_IN_USER) {
-                    self.section = 2;
+                    self.section = 1;
                     self.state = P_READY;
                     return (None, None, None, None);
                 }

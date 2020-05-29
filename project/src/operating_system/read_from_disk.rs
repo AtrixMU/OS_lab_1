@@ -148,7 +148,7 @@ impl Process for ReadFromDisk {
             },
             6 => {
                 self.section += 1;
-                return (None, Some(self.take_resource(RES_S_MEM)), None, None)
+                return (None, Some(self.take_resource(RES_S_MEM)), None, None);
             },
             7 => {
                 self.section += 1;
@@ -156,14 +156,14 @@ impl Process for ReadFromDisk {
                     self.take_resource(RES_FROM_USER_INT);
                     self.section = 0;
                 }
-                return (None, Some(self.take_resource(RES_CHNL)), None, None)
+                return (None, Some(self.take_resource(RES_CHNL)), None, None);
             },
             8 => {
                 self.section = 0;
                 self.take_resource(RES_FROM_USER_INT);
                 let res = self.take_resource(RES_TASK_IN_SUPER);
                 self.resources = Vec::new();
-                return (None, Some(res), None, None)
+                return (None, Some(res), None, None);
             }
             _ => panic!(),
         }

@@ -373,7 +373,7 @@ impl RMProcessor {
         self.pi = 0;
         self.get_vars(vm);
         if self.process_trap_flag(vm).is_err() {
-            panic!("");
+            panic!();
         }
         self.ki = 0;
         let cmd: String = self.get_command().as_text().expect("Failed to get text");

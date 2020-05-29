@@ -55,7 +55,7 @@ impl Kernel {
                     }
                 }
                 if process.get_state() == P_READY {
-                    // process.print(rm);
+                    process.print(rm);
                     let result = process.step(rm);
                     if result.0.is_some() && result.3.is_none() {
                         let value = result.0.unwrap();
@@ -82,11 +82,11 @@ impl Kernel {
                         let status_id = result.0.unwrap();
                         statuses.push((p_id, status_id));
                     }
-                    else if result.0.is_none() && result.1.is_none() && result.2.is_none()
-                        && result.3.is_none()
-                    {
-                        process.step(rm);
-                    }
+                    // else if result.0.is_none() && result.1.is_none() && result.2.is_none()
+                    //     && result.3.is_none()
+                    // {
+                    //     process.step(rm);
+                    // }
 
                 }
             }
