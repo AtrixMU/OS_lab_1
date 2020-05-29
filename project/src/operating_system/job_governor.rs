@@ -71,6 +71,7 @@ impl Process for JobGovernor {
             }
         }
         if resource_index == self.resources.len() {
+            println!("????");
             panic!();
         }
         self.resources.remove(resource_index)
@@ -112,6 +113,7 @@ impl Process for JobGovernor {
                 let params: Vec<&str> = msg.split_whitespace().collect();
                 self.ptr = params[0].parse::<u32>().unwrap();
                 let new_proc = VM::new(self.id + 10, self.id, 0);
+                println!("it's here??");
                 rm.vm_list.insert(self.id + 10, VMProcessor::new(self.ptr));
                 self.section += 1;
                 return (None, None, Some(Box::new(new_proc)), None);

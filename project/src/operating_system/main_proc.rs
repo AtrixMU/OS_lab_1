@@ -94,6 +94,7 @@ impl Process for MainProc {
                 }
             },
             1 => {
+                self.state = P_READY;
                 let msg = self.get_msg(RES_TASK_IN_USER);
                 let params: Vec<&str> = msg.split_whitespace().collect();
                 if params[1].parse::<usize>().unwrap() > 0 {
@@ -105,6 +106,7 @@ impl Process for MainProc {
 
             },
             2 => {
+                self.state = P_READY;
                 let msg = self.get_msg(RES_TASK_IN_USER);
                 let params: Vec<&str> = msg.split_whitespace().collect();
                 let kill = params[2].parse::<usize>().unwrap();
@@ -115,7 +117,8 @@ impl Process for MainProc {
             3 => {
                 let new_proc = JobGovernor::new(self.vm_id, self.id, 0);
                 self.section += 1;
-                return (None, None, Some(Box::new(new_proc)), None);
+                let res = Box::new(new_proc);
+                return (None, None, Some(res), None);
             }
             4 => {
                 // let msg = self.get_msg(RES_TASK_IN_USER);

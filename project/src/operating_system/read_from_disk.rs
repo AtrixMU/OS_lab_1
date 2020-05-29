@@ -120,7 +120,8 @@ impl Process for ReadFromDisk {
                 if file_name == "-x".to_string() {
                     self.end = true;
                     self.section  = 7;
-                    return (None, None, None, None);
+                    let res = Resource::new(RES_MOS_END);
+                    return (None, Some(res), None, None);
                 }
                 else {
                     self.file_data = rm.mmu.get_file_data(file_name);
