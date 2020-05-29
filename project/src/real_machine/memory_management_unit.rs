@@ -178,11 +178,11 @@ impl MemoryManagementUnit {
             *j %= PAGE_SIZE;
             return (commands, false);
         } 
-        let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().expect("error parsing cmd");
-        commands.push(word.clone());
-        *j += 1;
-        *i += *j / PAGE_SIZE;
-        *j %= PAGE_SIZE;
+        // let word = self.get_word(ptr, (*i * PAGE_SIZE + *j) as u32).as_text().expect("error parsing cmd");
+        // commands.push(word.clone());
+        // *j += 1;
+        // *i += *j / PAGE_SIZE;
+        // *j %= PAGE_SIZE;
         (commands, false)
     }
     pub fn list_programs(&self) {
