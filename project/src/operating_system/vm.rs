@@ -10,6 +10,7 @@ pub struct VM {
     state: usize,
     section: usize,
     resources: Vec<Resource>,
+    priority: usize,
 }
 
 impl VM {
@@ -21,6 +22,7 @@ impl VM {
             state: P_READY,
             section: 0,
             resources: Vec::new(),
+            priority: 1
         }
     }
 }
@@ -104,5 +106,8 @@ impl Process for VM {
             }
         }
         println!();
+    }
+    fn get_priority(&self) -> usize {
+        self.priority
     }
 }

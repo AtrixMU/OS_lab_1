@@ -12,6 +12,7 @@ pub struct JobToUMem {
     section: usize,
     resources: Vec<Resource>,
     user_ptr: usize,
+    priority: usize,
 }
 
 
@@ -25,6 +26,7 @@ impl JobToUMem {
             section: 0,
             resources: Vec::new(),
             user_ptr: 0,
+            priority: 3
         }
     }
     fn get_msg(&self, resource_type: usize) -> String {
@@ -170,5 +172,8 @@ impl Process for JobToUMem {
             }
         }
         println!();
+    }
+    fn get_priority(&self) -> usize {
+        self.priority
     }
 }

@@ -2,39 +2,45 @@ use super::process::Process;
 use crate::real_machine::processor::RMProcessor;
 use crate::consts::*;
 use super::resource::Resource;
-use super::read_from_disk::ReadFromDisk;
-use super::jcl::JCL;
-use super::job_to_umem::JobToUMem;
-use super::main_proc::MainProc;
-use super::print_line::PrintLine;
-use super::file_work::FileWork;
+use super::job_governor::JobGovernor;
 
-pub struct StartStop {
+
+pub struct FileWork {
     id: usize,
     parent_id: usize,
     vm: usize,
     state: usize,
     section: usize,
     resources: Vec<Resource>,
+    vm_id: usize,
     priority: usize,
 }
 
 
-impl StartStop {
-    pub fn new(id: usize, parent_id: usize, vm: usize) -> StartStop {
-        StartStop {
+impl FileWork {
+    pub fn new(id: usize, parent_id: usize, vm: usize) -> FileWork {
+        FileWork {
             id: id,
             parent_id: parent_id,
             vm: vm,
             state: P_READY,
             section: 0,
             resources: Vec::new(),
+            vm_id: 10,
             priority: 3,
         }
     }
+    fn get_msg(&self, resource_type: usize) -> String {
+        for res in &self.resources {
+            if res.get_type() == resource_type {
+                return res.get_msg();
+            }
+        }
+        panic!()
+    }
 }
 
-impl Process for StartStop {
+impl Process for FileWork {
     fn get_state(&self) -> usize {
         self.state
     }
@@ -74,55 +80,113 @@ impl Process for StartStop {
     fn step(&mut self, rm: &mut RMProcessor) -> (Option<usize>, Option<Resource>, Option<Box<dyn Process>>, Option<usize>) {
         match self.section {
             0 => {
-                let res = Resource::new(RES_S_MEM);
-                self.section += 1;
-                return (None, Some(res), None, None);
+                if self.has_resource(RES_FILE_PACK) {
+                    self.section = 1;
+                    self.state = P_READY;
+                    return (None, None, None, None);
+                }
+                else {
+                    self.state = P_BLOCKED;
+                    return (Some(RES_FILE_PACK), None, None, None);
+                }
             },
             1 => {
-                let res = Resource::new(RES_U_MEM);
-                self.section += 1;
-                return (None, Some(res), None, None);
+                if self.has_resource(RES_DISK) {
+                    self.section += 1;
+                    self.state = P_READY;
+                    return (None, None, None, None);
+                }
+                else {
+                    self.state = P_BLOCKED;
+                    return (Some(RES_DISK), None, None, None);
+                }
+
             },
             2 => {
-                let res = Resource::new(RES_DISK);
-                self.section += 1;
-                return (None, Some(res), None, None);
+                if self.has_resource(RES_CHNL) {
+                    self.section +=1;
+                    self.state = P_READY;
+                    return (None, None, None, None);
+                }
+                else {
+                    self.state = P_BLOCKED;
+                    return (Some(RES_CHNL), None, None, None);
+                }
             },
-            3 => {
-                let new_proc = ReadFromDisk::new(PID_READ_FROM_DISK, self.id, 0);
-                self.section += 1;
-                return (None, None, Some(Box::new(new_proc)), None);
+            3 => { // Parenkame failu dirbimo rezima pagal gauta pranesima
+                let message = self.take_resource(RES_FILE_PACK).get_msg();
+                match message.as_str() {
+                    "Open" => {
+                        rm.process_open();
+                    },
+                    "Close" => {
+                        rm.process_cls();
+                    },
+                    "Read" => {
+                        rm.process_read();
+                    },
+                    "Write" => {
+                        rm.process_wrt();
+                    },
+                    "Delete" => {
+                        rm.process_del();
+                    }
+                    _ => panic!()
+                }
+                if rm.get_pi() != 5 || rm.get_pi() != 5 {
+                    self.section += 1;
+                }
+                else {
+                    self.section = 7;
+                }
+               return(None,None,None,None);     
             },
             4 => {
-                let new_proc = JCL::new(PID_JCL, self.id, 0);
+                // let msg = self.get_msg(RES_TASK_IN_USER);
+                let mut res = self.take_resource(RES_CHNL);
                 self.section += 1;
-                return (None, None, Some(Box::new(new_proc)), None);
+                // res.set_msg(format!("{} {}", msg, self.vm_id));
+                return (None, Some(res), None, None)
             },
             5 => {
-                let new_proc = JobToUMem::new(PID_JOB_TO_UMEM, self.id, 0);
+                let mut res = self.take_resource(RES_DISK);
                 self.section += 1;
-                return (None, None, Some(Box::new(new_proc)), None);
+                return (None, Some(res), None, None)
             },
+
             6 => {
-                let new_proc = MainProc::new(PID_MAIN_PROC, self.id, 0);
-                self.section += 1;
-                return (None, None, Some(Box::new(new_proc)), None);
+                let mut res = Resource::new(RES_FROM_FILEWORK);
+                self.section = 0;
+                self.resources = Vec::new();
+                return (None, Some(res), None, None);
             },
+
             7 => {
-                let new_proc = PrintLine::new(PID_PRINT_LINE,self.id,0);
+                let mut res = self.take_resource(RES_CHNL);
                 self.section += 1;
-                return (None, None, Some(Box::new(new_proc)),None);
+                // res.set_msg(format!("{} {}", msg, self.vm_id));
+                return (None, Some(res), None, None)
             },
             8 => {
-                let new_proc = FileWork::new(PID_FILE_WORK,self.id,0);
+                let mut res = self.take_resource(RES_DISK);
                 self.section += 1;
-                return (None, None, Some(Box::new(new_proc)),None);
+                return (None, Some(res), None, None)
+            },
+            9 => {
+                let mut res = Resource::new(RES_FROM_FILEWORK);
+                res.set_msg("Filework error".to_string());
+                res.set_recipient(self.get_vm());
+                self.section = 0;
+                self.resources = Vec::new();
+                return(None, Some(res), None, None);
             }
+
             _ => panic!(),
         }
     }
-    fn print(&self, _rm: &RMProcessor) {
-        println!("Process: StartStop");
+
+    fn print(&self, rm: &RMProcessor) {
+        println!("Process: MainProc");
         print!("Status: ");
         match self.state {
             P_READY => println!("P_READY"),

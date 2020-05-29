@@ -12,7 +12,8 @@ pub struct MainProc {
     state: usize,
     section: usize,
     resources: Vec<Resource>,
-    vm_id: usize
+    vm_id: usize,
+    priority: usize,
 }
 
 
@@ -26,6 +27,7 @@ impl MainProc {
             section: 0,
             resources: Vec::new(),
             vm_id: 10,
+            priority: 3
         }
     }
     fn get_msg(&self, resource_type: usize) -> String {
@@ -162,5 +164,8 @@ impl Process for MainProc {
             }
         }
         println!();
+    }
+    fn get_priority(&self) -> usize {
+        self.priority
     }
 }

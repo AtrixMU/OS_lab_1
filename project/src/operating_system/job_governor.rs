@@ -15,6 +15,7 @@ pub struct JobGovernor {
     resources: Vec<Resource>,
     ptr: u32,
     int_code: u8,
+    priority: usize,
 }
 
 
@@ -29,6 +30,7 @@ impl JobGovernor {
             resources: Vec::new(),
             ptr: 0,
             int_code: 0,
+            priority: 2,
         }
     }
     fn get_msg(&self, resource_type: usize) -> String {
@@ -258,5 +260,8 @@ impl Process for JobGovernor {
             }
         }
         println!();
+    }
+    fn get_priority(&self) -> usize {
+        self.priority
     }
 }

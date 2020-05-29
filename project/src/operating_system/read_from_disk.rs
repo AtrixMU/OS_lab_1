@@ -12,7 +12,8 @@ pub struct ReadFromDisk {
     state: usize,
     section: usize,
     resources: Vec<Resource>,
-    file_data: Vec<Word>
+    file_data: Vec<Word>,
+    priority: usize,
 }
 
 impl ReadFromDisk {
@@ -25,6 +26,7 @@ impl ReadFromDisk {
             section: 0,
             resources: Vec::new(),
             file_data: Vec::new(),
+            priority: 3,
         }
     }
     fn get_msg(&self, resource_type: usize) -> String {
@@ -173,5 +175,8 @@ impl Process for ReadFromDisk {
             }
         }
         println!();
+    }
+    fn get_priority(&self) -> usize {
+        self.priority
     }
 }

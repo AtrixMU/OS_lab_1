@@ -13,6 +13,7 @@ pub struct Interrupt {
     resources: Vec<Resource>,
     msg: String,
     dest: usize,
+    priority: usize,
 }
 
 
@@ -27,6 +28,7 @@ impl Interrupt {
             resources: Vec::new(),
             msg: String::new(),
             dest: 0,
+            priority: 3,
         }
     }
     fn get_msg(&self, resource_type: usize) -> String {
@@ -148,5 +150,8 @@ impl Process for Interrupt {
             }
         }
         println!();
+    }
+    fn get_priority(&self) -> usize {
+        self.priority
     }
 }
